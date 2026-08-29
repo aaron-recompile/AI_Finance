@@ -24,7 +24,8 @@ Run each after `conda activate ai_finance` (see `SETUP.md`):
 
 | Script | What it does |
 |--------|--------------|
-| `read_chain.py` | Read a **live** blockchain: block height, gas, native ETH + USDC balance (read-only, free). |
+| `read_chain.py` | Read a **live** blockchain: block height, gas, native ETH + USDC balance (read-only, free). Reads **Ethereum mainnet** by default. |
+| `check_balance.py` | "Did my test ETH arrive?" — check any address's ETH + USDC on **any** chain (defaults to Base Sepolia). Never crashes on the wrong chain. |
 | `gen_wallet.py` | Generate a wallet = a keypair (address + private key). **Testnet only.** |
 | `send_asset.py` | Send native ETH: assemble → sign → broadcast → wait for inclusion. |
 | `interact_contract.py` | Deploy a demo token, then `balanceOf` (read) and `transfer` (write). |
