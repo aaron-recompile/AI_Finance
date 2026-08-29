@@ -2,7 +2,7 @@
 
 ## Lecture Notes
 
-> **How this course works (say this on Day 1):** No PowerPoint. All notes are AI-generated Markdown, published to GitHub/Drive. We don't *study* the chain — we *build* on it. Every concept climbs the same **five-rung ladder**: (R1) see it → (R2) use it in a wallet → (R3) call it with code → (R4) build your own → (R5) hand it to your agent. Where you stop on the ladder is your track. Everything runs on **testnet — no real money, ever.**
+> **How this course works (say this on Day 1):** No PowerPoint. All notes are AI-generated Markdown, published to GitHub/Drive. We don't *study* the chain — we *build* on it. Every concept climbs the same **five-rung ladder**: (R1) see it → (R2) use it in a wallet → (R3) call it with code → (R4) build your own → (R5) hand it to your agent. Everything runs on **testnet — no real money, ever.**
 
 ### Learning Objectives
 
@@ -154,6 +154,8 @@ A **smart contract** is a program deployed to an address. Anyone can call its fu
 - **Composability:** any contract can call any other. This is DeFi's superpower *and* its biggest attack surface (Weeks 3 & 6).
 
 > **Teaching tip:** Reframe: *"A smart contract is a vending machine made of math. You put in the right input, you get the guaranteed output, and nobody — not even the owner — can reach in and change the result mid-transaction."*
+>
+> **Live demo (open in a browser):** `demos/vending-machine-callable.html` — a person and another contract call the *same* `buy()`: coins in, item out, change back. Flip on "a human runs it" and it can keep the coins and give nothing. The point lands visually: a contract's "no operator to trust" is simply that **the code left no backdoor for an operator**, and that contracts can call other contracts is **composability**.
 
 ### Part 6: The Five-Rung Ladder (our method for the whole term)
 
