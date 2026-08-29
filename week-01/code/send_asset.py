@@ -6,9 +6,9 @@ Sign -> broadcast -> wait to be mined -> see the balances change: a transaction'
 Defaults to a local anvil chain (instant, free, pre-funded accounts); can point at testnet too:
     local:   anvil               # in another terminal
              python send_asset.py
-    testnet: export RPC=https://sepolia.base.org
-             export PRIVATE_KEY=0xYourTestnetKey      # needs faucet gas first
-             export TO=0xRecipient
+    testnet: export RPC=https://base-sepolia-rpc.publicnode.com   # reliable Base Sepolia RPC
+             export PRIVATE_KEY=0xYourTestnetKey      # YOUR key; needs faucet gas first
+             export TO=0xRecipient                    # your classmate's ADDRESS (public)
              python send_asset.py
 
 install:  pip install web3
