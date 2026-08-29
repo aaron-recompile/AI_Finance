@@ -16,17 +16,18 @@ install:  pip install web3
 import os
 from web3 import Web3
 
-RPC = os.getenv("RPC", "http://localhost:8545")
+# .strip() throughout tolerates a stray space from Windows `set VAR= value`.
+RPC = os.getenv("RPC", "http://localhost:8545").strip()
 # Default = anvil account 0's well-known key (local chain, worthless). Use your own on testnet.
 PRIVATE_KEY = os.getenv(
     "PRIVATE_KEY",
     "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-)
+).strip()
 # Default recipient = anvil account 1
 TO = Web3.to_checksum_address(
-    os.getenv("TO", "0x70997970C51812dc3A010C7d01b50e0d17dc79C8")
+    os.getenv("TO", "0x70997970C51812dc3A010C7d01b50e0d17dc79C8").strip()
 )
-AMOUNT_ETH = float(os.getenv("AMOUNT_ETH", "1.0"))
+AMOUNT_ETH = float(os.getenv("AMOUNT_ETH", "1.0").strip())
 
 
 def main():

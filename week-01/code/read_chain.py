@@ -12,14 +12,15 @@ run:      python read_chain.py            # or set ADDR=0xYourAddress python rea
 import os
 from web3 import Web3
 
-# Public Ethereum mainnet RPC (read-only)
-RPC = os.getenv("RPC", "https://ethereum-rpc.publicnode.com")
+# Public Ethereum mainnet RPC (read-only). .strip() tolerates a stray space from Windows `set`.
+RPC = os.getenv("RPC", "https://ethereum-rpc.publicnode.com").strip()
 # USDC contract on Ethereum mainnet
 USDC = Web3.to_checksum_address("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
 
 # Address to inspect. Default = vitalik.eth (holds both ETH and USDC). Override with ADDR=0x...
+# .strip() so `set ADDR= 0x..` (a common Windows typo with a leading space) still works.
 ADDR = Web3.to_checksum_address(
-    os.getenv("ADDR", "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045")
+    os.getenv("ADDR", "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045").strip()
 )
 
 # Minimal ERC20 ABI: just the three read-only functions we need
