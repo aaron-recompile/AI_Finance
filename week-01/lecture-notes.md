@@ -53,6 +53,8 @@ It's not a company's database (a company can quietly edit its own). It's a snaps
 
 In one line: **Bitcoin makes "money" maximally simple and reliable; Ethereum ties "money + programmable rules" together.** This course builds "agents that execute financial strategy on their own," which needs **programmable rules** — so our main arena is **Ethereum-family (EVM) chains and their cheap Layer-2s**. (Bitcoin isn't "worse," it's a **different trade-off** — we revisit this in Week 6 on market structure.)
 
+> **R1 live demo (open it in class):** <https://txcity.io/v/eth-btc> — the two streets are **Ethereum vs. Bitcoin**, side by side. It turns each chain into a bus system: **people queuing = pending transactions, each bus = a block, the fare = the fee.** A free live view of these two models. **Plant one detail — "the higher-fare person boards first" — Week 4's MEV grows straight out of it.**
+
 **③ A smart contract is just "that piece of code attached to an address."**
 Because Ethereum is an account-plus-code model, you can write "loan terms" or "swap rules" as a program deployed at an address that anyone can call, that runs exactly as written, and that no one can alter mid-way. **"Law becomes code," in technical terms, is exactly this.** (More in Part 5.)
 
@@ -109,16 +111,6 @@ To *do* anything on-chain, you send a **transaction** — a message signed by yo
 
 **This "sign an intent, the network verifies and executes" pattern is the spine of everything** — it's the same shape as an agent placing a trade or authorizing a payment (we'll see it again in Weeks 5–6).
 
-### Part 4: Gas — Paying for Computation
-
-Every transaction consumes **gas** — a fee that pays the network to run your computation and store the result. No gas, no execution.
-
-- Gas is why you can't spam the chain for free.
-- On cheap Layer-2s (Base, Arbitrum) gas is a fraction of a cent; on Ethereum L1 it can be dollars. **This price difference is why the whole "agent micropayment" economy lives on L2s** (Week 5).
-
-> **R1 live demo (strongly recommended, open it in class):** <https://txcity.io/v/eth-btc>
-> An animation that turns the blockchain into a **bus system**: **the people queuing = pending transactions, each arriving bus = a block, boarding = getting included, the fare (Gwei / Sat/vB) = the fee.** The two streets are **Ethereum vs. Bitcoin** — a free live view of Part 0's "two models, two fee units." Let students watch for a minute: in low demand it's "empty 0-Gwei buses," in congestion the waiting room is packed. **Plant this detail now — "the higher-fare person boards first" — Week 4's MEV grows straight out of it.**
-
 ### Hands-On: The Four Basic web3.py Operations (R3 code + R2 UI)
 
 Every later week reuses these four operations. Do them once now and students carry a "universal feel" forward. **Three scripts, all runnable on a local anvil in class.**
@@ -156,18 +148,6 @@ A **smart contract** is a program deployed to an address. Anyone can call its fu
 > **Teaching tip:** Reframe: *"A smart contract is a vending machine made of math. You put in the right input, you get the guaranteed output, and nobody — not even the owner — can reach in and change the result mid-transaction."*
 >
 > **Live demo (open in a browser):** `demos/vending-machine-callable.html` — a person and another contract call the *same* `buy()`: coins in, item out, change back. Flip on "a human runs it" and it can keep the coins and give nothing. The point lands visually: a contract's "no operator to trust" is simply that **the code left no backdoor for an operator**, and that contracts can call other contracts is **composability**.
-
-### Part 6: The Five-Rung Ladder (our method for the whole term)
-
-| Rung | You… | Track |
-|------|------|-------|
-| R1 Illustrate | see *what it is* | everyone |
-| R2 Use | operate it in MetaMask | everyone |
-| R3 Interact | call it with web3.py (via Claude Code) | main / advanced |
-| R4 Build | write & deploy your own toy contract | advanced |
-| R5 Delegate | hand the capability to your own agent | advanced |
-
-**Every topic ends at the same question: *can the agent do this by itself?***
 
 ### R5 Preview + This Week's Homework: Hand the Operations to an Agent
 

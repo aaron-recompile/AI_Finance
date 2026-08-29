@@ -33,17 +33,41 @@ The **only** real difference is **which terminal you open** and **how you set a 
 
 ## Step 1 — Install Miniconda (one time)
 
-Miniconda gives every student the **same Python**, isolated from your machine. Biggest "don't crash" move. Download the **Miniconda** installer, run it with **all defaults**: https://www.anaconda.com/download/success
+Miniconda gives every student the **same Python**, isolated from your machine — the biggest "don't crash" move. (We use **Miniconda**, the small version. Full "Anaconda" also works but is a much bigger download; either way you get the **Anaconda Prompt** on Windows.)
 
-- **🍎 macOS:** pick your chip (**Apple Silicon** for M1/M2/M3/M4, else **Intel**). Then open **Terminal**.
-- **🪟 Windows:** run the `.exe`, keep defaults. Then open **Anaconda Prompt**.
-- **🐧 Linux:** run the `.sh`, open a new terminal.
+**Download page (pick your OS):** https://www.anaconda.com/download/success → scroll to **"Miniconda Installers"**.
+
+### 🪟 Windows
+
+1. Download **"Miniconda3 Windows 64-bit"** (`.exe`).
+2. Double-click it → **Next** → **I Agree** → select **"Just Me (recommended)"** → **Next** → keep the default install location → **Next**.
+3. On **Advanced Options**, leave the defaults — **do NOT tick "Add Miniconda to my PATH"** (that's exactly why we use Anaconda Prompt instead) → **Install** → **Finish**.
+4. Open the **Start menu**, type **"Anaconda Prompt"**, open it. A black window appears with `(base)` at the start of the line — **run every command in this window** from now on.
+
+### 🍎 macOS
+
+1. Download the installer that matches your chip: **"Miniconda3 macOS Apple Silicon"** (M1/M2/M3/M4) or **"…Intel x86"** (older Macs). Take the **`.pkg`** (graphical) one — easiest.
+   > Not sure which chip?  → Apple menu → **About This Mac**. "Apple M…" = Apple Silicon.
+2. Double-click the `.pkg` → **Continue** → **Agree** → **Install** (enter your Mac password if asked) → **Close**.
+3. Open the **Terminal** app (Cmd-Space, type "Terminal"). **Open a fresh Terminal window** so it picks up conda — you should see `(base)` at the start of the line.
+
+### 🐧 Linux
+
+```bash
+bash ~/Downloads/Miniconda3-latest-Linux-x86_64.sh
+# press Enter / type "yes" through the license; accept the default location; answer "yes" to run conda init
+```
+Then close and reopen the terminal.
+
+### Verify (all OSes)
 
 ```bash
 conda --version
 ```
 
-> 🪟 "not recognized" → open **Anaconda Prompt**, not PowerShell. 🍎🐧 "command not found" → close & reopen the terminal once.
+> Prints e.g. `conda 24.x` → Step 1 done.
+> 🪟 "not recognized" → make sure you opened **Anaconda Prompt** (not PowerShell/CMD), or reinstall and confirm it finished.
+> 🍎🐧 "command not found" → **fully quit and reopen** the terminal once. Still missing on macOS? run `source ~/miniconda3/bin/activate` then `conda init zsh`, and reopen Terminal.
 
 ## Step 2 — Create the course environment
 
