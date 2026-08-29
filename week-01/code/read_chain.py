@@ -33,12 +33,32 @@ ERC20_ABI = [
 ]
 
 
+# Human names for the chain IDs you might land on in this course
+CHAIN_NAMES = {1: "Ethereum mainnet", 8453: "Base mainnet",
+               84532: "Base Sepolia (testnet)", 11155111: "Ethereum Sepolia (testnet)"}
+
+
 def main():
     w3 = Web3(Web3.HTTPProvider(RPC))
+    chain_id = w3.eth.chain_id
+    name = CHAIN_NAMES.get(chain_id, "unknown network")
     print("Connected   :", w3.is_connected())
-    print("Network     : Ethereum mainnet (chainId", str(w3.eth.chain_id) + ")")
+    print(f"Network     : {name} (chainId {chain_id})   RPC={RPC}")
     print("Latest block:", w3.eth.block_number, "  (compare on etherscan.io)")
     print("Gas price   :", round(float(w3.from_wei(w3.eth.gas_price, "gwei")), 3), "gwei")
+
+    # This script is meant to read Ethereum MAINNET (chainId 1), where the USDC
+    # address below lives. If we're somewhere else, it's almost always a leftover
+    # RPC env var from a testnet exercise -- say so plainly instead of crashing.
+    if chain_id != 1:
+        print("\n" + "!" * 64)
+        print(f"  You're on {name}, NOT Ethereum mainnet.")
+        print("  This script reads mainnet USDC, which doesn't exist here.")
+        print("  You most likely have an RPC env var set. Clear it and rerun:")
+        print("     unset RPC          # macOS / Linux")
+        print("     set RPC=           # Windows (Anaconda Prompt)")
+        print("  ...then:  python read_chain.py")
+        print("!" * 64)
 
     print(f"\nInspecting address: {ADDR}  (default: vitalik.eth)")
 
@@ -49,12 +69,17 @@ def main():
 
     # (2) Token balance (USDC): USDC is just a contract; the balance lives inside
     #     the contract's own ledger, so we ASK THE CONTRACT (a view call).
-    usdc = w3.eth.contract(address=USDC, abi=ERC20_ABI)
-    sym = usdc.functions.symbol().call()
-    dec = usdc.functions.decimals().call()
-    bal = usdc.functions.balanceOf(ADDR).call()
-    print(f"(2) Token {sym} balance (ask the contract) : {bal / 10**dec:,.2f} {sym}")
-    print(f"    (contract {sym}, {dec} decimals, at {USDC})")
+    #     Wrapped so a wrong-chain / missing contract gives a clear hint, not a traceback.
+    try:
+        usdc = w3.eth.contract(address=USDC, abi=ERC20_ABI)
+        sym = usdc.functions.symbol().call()
+        dec = usdc.functions.decimals().call()
+        bal = usdc.functions.balanceOf(ADDR).call()
+        print(f"(2) Token {sym} balance (ask the contract) : {bal / 10**dec:,.2f} {sym}")
+        print(f"    (contract {sym}, {dec} decimals, at {USDC})")
+    except Exception:
+        print("(2) Token USDC balance (ask the contract) : could not read.")
+        print(f"    No USDC contract at {USDC} on this chain -> see the RPC note above.")
 
     print("\nTakeaways:")
     print("  - No node installed, nothing paid, no login: the chain is public, objective state.")
