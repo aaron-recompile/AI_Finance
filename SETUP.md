@@ -1,153 +1,181 @@
-# Week 1 · First-Class Setup (do this in order)
+# Week 1 · Setup + Hands-On (your in-class guide)
 
-> Goal for today: **run one line of Python that reads a live blockchain, and generate your own wallet.** That's it. We install only what Week 1 needs. (Solidity/Foundry comes in Week 2.)
+> **This is the one document we use in class.** Part A gets your environment working (~20 min). Part B is the hands-on loop we do together: make a wallet → read the real chain → get test ETH → send to a classmate. **Testnet only — you never touch real money.**
 >
-> **If any command fails, don't panic — paste the full command + full error into Claude Code and ask "how do I fix this on my OS?"** That's the method in this course, not cheating. Everything is free and uses **testnets only — you never touch real money.**
+> **If any command fails, paste the full command + full error into Claude Code and ask "how do I fix this on my OS?"** That's the method in this course, not cheating.
 
-**Time:** ~20 min. **You need:** a laptop (macOS / Windows / Linux), a browser, and a GitHub account.
+**You need:** a laptop (macOS / Windows / Linux), a browser, and a GitHub account.
 
 ### 🪟 Windows / 🍎 macOS / 🐧 Linux — read your icon
 
-Look for the OS icons below. The **only** real difference is **which terminal you open**:
+The **only** real difference is **which terminal you open** and **how you set a variable**:
 
-- **🍎 macOS / 🐧 Linux:** open the **Terminal** app.
-- **🪟 Windows:** after Step 1, open **"Anaconda Prompt"** from the Start menu — **not** PowerShell or CMD. Run every command in Anaconda Prompt.
+- **🍎 macOS / 🐧 Linux:** open **Terminal**.
+- **🪟 Windows:** open **"Anaconda Prompt"** from the Start menu (after Part A · Step 1) — **not** PowerShell or CMD.
 
-Once your terminal is open, **the commands are identical on all three systems.**
+| | 🍎 macOS / Linux (one line) | 🪟 Windows (cmd / Anaconda Prompt) |
+|---|---|---|
+| set a variable + run | `ADDR=0xABC python check_balance.py` | `set ADDR=0xABC`  ⏎  `python check_balance.py` |
+| clear a variable | `unset ADDR` | `set ADDR=` |
+
+> **🪟 Windows golden rule: NO space after `=`.** `set ADDR= 0xABC` stores a leading space and fails. Write `set ADDR=0xABC`.
 
 ---
 
-## The 5 steps at a glance
+# Part A — Install (first ~20 min)
 
-| # | Step | You're done when… |
-|---|------|-------------------|
+| # | Step | Done when… |
+|---|------|-----------|
 | 1 | Install **Miniconda** | `conda --version` prints a version |
-| 2 | Create the course env (**Python 3.11**) | your prompt shows `(ai_finance)` |
-| 3 | Install **web3** into it | `python -c "import web3"` prints nothing (no error) |
+| 2 | Create the env (**Python 3.11**) | your prompt shows `(ai_finance)` |
+| 3 | Install **web3** | `python -c "import web3"` gives no error |
 | 4 | Get this **repo's code** | you can `cd` into `week-01/code` |
-| 5 | **Smoke test** | `read_chain.py` prints a block number; `gen_wallet.py` prints an address |
-
-Do them **top to bottom.**
-
----
 
 ## Step 1 — Install Miniconda (one time)
 
-Miniconda gives every student the **same Python**, isolated from whatever else is on your laptop. This is the single biggest "don't crash" move.
+Miniconda gives every student the **same Python**, isolated from your machine. Biggest "don't crash" move. Download the **Miniconda** installer, run it with **all defaults**: https://www.anaconda.com/download/success
 
-Download the **Miniconda** installer for your OS and run it with **all defaults**:
-https://www.anaconda.com/download/success
-
-- **🍎 macOS:** pick the installer matching your chip (**Apple Silicon** for M1/M2/M3/M4, **Intel** otherwise). Then open **Terminal**.
-- **🪟 Windows:** run the `.exe`, keep defaults. Then open **Anaconda Prompt** from the Start menu.
-- **🐧 Linux:** run the `.sh` installer, then open a new terminal.
-
-Verify (in your terminal):
+- **🍎 macOS:** pick your chip (**Apple Silicon** for M1/M2/M3/M4, else **Intel**). Then open **Terminal**.
+- **🪟 Windows:** run the `.exe`, keep defaults. Then open **Anaconda Prompt**.
+- **🐧 Linux:** run the `.sh`, open a new terminal.
 
 ```bash
 conda --version
 ```
 
-> Prints `conda 24.x` (any version is fine) → Step 1 done.
-> **🪟 Windows:** if it says "not recognized", make sure you opened **Anaconda Prompt**, not PowerShell.
-> **🍎🐧 mac/Linux:** if "command not found", **close and reopen** the terminal once.
-
----
+> 🪟 "not recognized" → open **Anaconda Prompt**, not PowerShell. 🍎🐧 "command not found" → close & reopen the terminal once.
 
 ## Step 2 — Create the course environment
 
 ```bash
 conda create -n ai_finance python=3.11 -y
 conda activate ai_finance
-```
-
-Verify — your prompt should now start with **`(ai_finance)`**, and:
-
-```bash
 python --version      # -> Python 3.11.x
 ```
 
-> **Why 3.11 (not the newest):** some libraries don't yet ship installers for Python 3.13/3.14, and you get a confusing error. 3.11 just works.
->
-> **Every new terminal, run `conda activate ai_finance` first.** If your prompt doesn't say `(ai_finance)`, you're in the wrong Python.
+> Prompt must show **`(ai_finance)`**. **Every new terminal: run `conda activate ai_finance` first.**
+> Why 3.11: some libraries have no installer yet for 3.13/3.14 — 3.11 just works.
 
----
-
-## Step 3 — Install the Week 1 library
+## Step 3 — Install the library
 
 ```bash
 pip install web3 eth-account
-```
-
-Verify:
-
-```bash
 python -c "import web3, eth_account; print('web3', web3.__version__)"
 ```
 
-> Prints e.g. `web3 7.16.0` → done. (Installing with `pip` *inside* the conda env is normal and correct.)
-
----
-
 ## Step 4 — Get this repo's code
-
-You need **Git** for `clone`. macOS/Linux usually have it (`git --version`); **🪟 Windows:** if `git` is missing, either install "Git for Windows", or just use **Option B (ZIP)** below — no Git needed.
-
-**Option A — git clone (recommended):**
 
 ```bash
 git clone https://github.com/aaron-recompile/AI_Finance.git
 cd AI_Finance/week-01/code
 ```
 
-**Option B — no Git? download the ZIP:** on the GitHub repo page click **Code → Download ZIP**, unzip it, then in your terminal `cd` into the unzipped `.../week-01/code` folder.
-
-Verify:
-
-```bash
-ls        # 🍎🐧 mac/Linux
-dir       # 🪟 Windows
-# you should see read_chain.py, gen_wallet.py, send_asset.py, ...
-```
+> 🪟 No Git? On the GitHub page click **Code → Download ZIP**, unzip, then `cd` into `...\week-01\code`.
+> List the files to confirm: `ls` (🍎🐧) / `dir` (🪟) — you should see `read_chain.py`, `gen_wallet.py`, …
 
 ---
 
-## Step 5 — Smoke test (the payoff)
+# Part B — Hands-on: the class "water cycle"
 
-Make sure your prompt says `(ai_finance)` and you're inside `week-01/code`, then:
+> Run everything below inside `week-01/code`, with your prompt showing `(ai_finance)`.
+
+## 1. Make your wallet (everyone)
 
 ```bash
-# 1) READ a real blockchain (Ethereum mainnet, read-only, free, no account)
-python read_chain.py
-
-# 2) Generate YOUR OWN wallet (a keypair)
 python gen_wallet.py
 ```
 
-- `read_chain.py` should print the latest **block number**, **gas price**, and an address's ETH + USDC balance. *You just touched the live chain.*
-- `gen_wallet.py` prints an **ADDRESS** (public) and a **PRIVATE KEY** (secret).
-  - **Paste only the ADDRESS into class chat.** Never paste the private key anywhere.
-  - This is a throwaway testnet key — **never put real money behind it.**
+Prints an **ADDRESS** (public) and a **PRIVATE KEY** (secret).
 
-If both printed without a red error → **you're fully set up for Week 1.** 🎉
+- ✅ **Paste ONLY your ADDRESS** into class chat. 🚫 **Never paste the private key.**
+- Throwaway learning key — never real money. *Keep it handy; Step 4 (sending) needs it.*
+
+## 2. Read the real chain (everyone)
+
+```bash
+python read_chain.py
+```
+
+Expect the latest **block / gas** and vitalik.eth's **ETH + USDC** on **Ethereum mainnet (chainId 1)**. *No account, no money, no node — the chain is public, objective state.*
+
+> ⚠️ Says **chainId 84532** or errors on USDC? You have a leftover `RPC` var → `unset RPC` (🍎) / `set RPC=` (🪟), rerun.
+
+## 3. Instructor funds everyone (teacher)
+
+Teacher collects all student addresses into `students.txt` (one per line), then from the course root:
+
+```bash
+set -a && source .env.faucet && set +a
+AMOUNT_ETH=0.001 python weeks/week-01/code/faucet_distribute.py students.txt
+```
+
+## 4. Check it arrived (everyone)
+
+```bash
+# 🍎 macOS/Linux
+ADDR=0xYourAddress python check_balance.py
+# 🪟 Windows
+set ADDR=0xYourAddress
+python check_balance.py
+```
+
+Expect `ETH (native) : 0.001 ETH`. Or verify in a browser (no install):
+`https://sepolia.basescan.org/address/0xYourAddress` (if it looks broken/unstyled, use `https://base-sepolia.blockscout.com/address/0xYourAddress`).
+
+## 5. Send to a classmate (everyone)
+
+Get a classmate's **address** from chat. You sign with **your own** key:
+
+```bash
+# 🍎 macOS/Linux (one line)
+RPC=https://base-sepolia-rpc.publicnode.com PRIVATE_KEY=0xYOURkey TO=0xCLASSMATE AMOUNT_ETH=0.0002 python send_asset.py
+```
+```bat
+:: 🪟 Windows (no space after =)
+set RPC=https://base-sepolia-rpc.publicnode.com
+set PRIVATE_KEY=0xYOURkey
+set TO=0xCLASSMATE
+set AMOUNT_ETH=0.0002
+python send_asset.py
+```
+
+Watch the full life of a transaction: `assemble → sign → broadcast → mined`, balances move.
+`PRIVATE_KEY` = **yours** (secret); `TO` = classmate's **address** (public). Your 0.001 covers gas.
+
+## 6. Verify the transfer (both sides)
+
+Re-run Step 4 (`check_balance.py` / explorer) for **both** addresses.
+
+## 7. Feel contracts calling contracts (demos)
+
+Open in a browser (double-click, no install):
+- `../demos/vending-machine-callable.html` — a person and another contract call the same `buy()`.
+- `../demos/composability-playground.html` — a swap cascading Wallet → AMM → Token.
+
+## After class — reclaim (teacher)
+
+```bash
+set -a && source .env.faucet && set +a
+python weeks/week-01/code/reclaim.py group-keys.txt      # sweep test ETH back to the funder
+```
 
 ---
 
-## If it breaks — the 4 usual suspects
+## When something breaks — the usual suspects
 
-| Error you see | Fix |
-|---------------|-----|
+| Symptom | Cause → fix |
+|---------|-------------|
 | `conda: command not found` / "not recognized" | 🪟 use **Anaconda Prompt**; 🍎🐧 close & reopen the terminal. |
-| `externally-managed-environment` / pip refuses | You forgot `conda activate ai_finance`. Prompt must show `(ai_finance)`. |
-| `ModuleNotFoundError: No module named 'web3'` | Wrong Python. Run `conda activate ai_finance`, then re-run Step 3. |
-| a package won't install (mentions 3.13/3.14) | You're on the wrong Python; recreate the env with `python=3.11` (Step 2). |
-
-Still stuck? **Paste the full command + full error into Claude Code.** Or grab the instructor — there's a pre-funded backup wallet to keep you moving.
-
----
+| `externally-managed-environment` / pip refuses | Forgot `conda activate ai_finance` — prompt must show `(ai_finance)`. |
+| `ModuleNotFoundError: web3` | Wrong Python → `conda activate ai_finance`, redo Part A Step 3. |
+| package won't install (mentions 3.13/3.14) | Wrong Python → recreate env with `python=3.11` (Part A Step 2). |
+| `'RPC' is not recognized...` (🪟) | You used the Mac one-line style. On Windows use `set VAR=value` on its own line. |
+| address error `Got: ' 0x..'` (🪟) | Space after `=` in `set`. Write `set ADDR=0x..` (no space). |
+| `Network: ... chainId 84532` when you wanted mainnet | Leftover `RPC` → `unset RPC` / `set RPC=`. |
+| basescan looks broken / unstyled | Ad-blocker stripped its CSS → whitelist it, use Incognito, or use Blockscout. |
 
 ## Not today (so we don't crash on day one)
 
-- **Foundry (`forge`/`cast`/`anvil`)** → Week 2, when we write Solidity. Skipping it now.
-- **MetaMask** → optional; the instructor demos it. Your "wallet" is just the keypair from `gen_wallet.py`.
-- **Getting testnet ETH** → we do this together in class from a browser faucet; nothing to pre-install.
+- **Foundry (`forge`/`cast`/`anvil`)** → Week 2, when we write Solidity.
+- **MetaMask** → optional; instructor demos it. Your wallet is the keypair from `gen_wallet.py`.
+- **Getting testnet ETH** → we do it together in class from a browser faucet.

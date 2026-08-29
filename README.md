@@ -10,11 +10,10 @@ Course materials for **MB / CSE 599 · AI Finance**. We don't just *study* block
 
 | What | Where |
 |------|-------|
-| 🛠️ **Setup (do this first)** | [`SETUP.md`](SETUP.md) |
-| 🏃 **Hands-on lab (step-by-step runbook)** | [`week-01/LAB.md`](week-01/LAB.md) — make wallet → read chain → get test ETH → send to a classmate |
+| 🛠️ **In class: setup + hands-on (start here)** | [`SETUP.md`](SETUP.md) — install the env, then the live loop: wallet → read chain → get test ETH → send to a classmate |
 | 🖥️ **Slides (Session 1)** | [`week-01/slides/AI_Finance_Week1.html`](week-01/slides/AI_Finance_Week1.html) — open in a browser |
 | 📖 **Lecture notes** | [`week-01/lecture-notes.md`](week-01/lecture-notes.md) |
-| 🧪 **Lab / homework** | [`week-01/lab-exercise.md`](week-01/lab-exercise.md) |
+| 📝 **Homework (after class)** | [`week-01/lab-exercise.md`](week-01/lab-exercise.md) |
 | 📚 **Reference pack (terms + cheatsheet)** | [`week-01/foundations-reference-pack.md`](week-01/foundations-reference-pack.md) |
 | 🎮 **Interactive demos** | [`week-01/demos/`](week-01/demos/) — open the `.html` files in a browser |
 | 💻 **Code** | [`week-01/code/`](week-01/code/) |
