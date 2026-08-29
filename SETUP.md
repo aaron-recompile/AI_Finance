@@ -96,7 +96,7 @@ You need **Git** for `clone`. macOS/Linux usually have it (`git --version`); **ð
 **Option A â€” git clone (recommended):**
 
 ```bash
-git clone <COURSE_REPO_URL>
+git clone https://github.com/aaron-recompile/AI_Finance.git
 cd AI_Finance/week-01/code
 ```
 
