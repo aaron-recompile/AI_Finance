@@ -127,7 +127,6 @@
     <div class="rule"></div>
     <ul>
       <li>Every concept climbs the same <b>5-rung ladder</b>: <span class="k">R1</span> see it → <span class="k">R2</span> use it in a wallet → <span class="k">R3</span> drive it with code → <span class="k">R4</span> build it → <span class="k">R5</span> hand it to your agent.</li>
-      <li><b>Where you stop is your track</b> — not everyone writes contracts, but everyone must understand and use them.</li>
       <li>All notes are AI-generated Markdown on GitHub / Drive; <b>stuck? ask AI — that's the method here, not cheating</b>.</li>
       <li><b>Testnet the whole way, never real money</b> — do every step by hand with play-money.</li>
     </ul>
@@ -208,6 +207,7 @@
       <tr><td>Best at</td><td>Extremely auditable <b>value storage &amp; transfer</b></td><td>Any <b>financial logic</b> — DeFi / lending / AMM</td></tr>
     </table>
     <div class="callout">This course builds agents that run strategies → we need <b>programmable rules</b> → main arena is <b>Ethereum (EVM) and its cheap L2s</b>. Bitcoin isn't worse, it's a <b>different tradeoff</b>.</div>
+    <div class="callout">▶ <b>Play live:</b> <span class="mono">txcity.io/v/eth-btc</span> — Ethereum vs Bitcoin as two live streets: waiting people = pending txs, a bus = a block, the fare = the fee.</div>
     <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
   </section>
 
@@ -281,21 +281,6 @@
     <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
   </section>
 
-  <!-- 13 · Part 4 gas -->
-  <section class="slide">
-    <div class="eyebrow">Part 4</div>
-    <h2>Gas — paying for computation</h2>
-    <div class="rule"></div>
-    <ul>
-      <li>Every transaction burns <b>gas</b>: paid to the network to run your computation and store the result. <b>No gas, no execution.</b></li>
-      <li>Gas is why you <b>can't spam the chain for free</b>.</li>
-      <li>On cheap L2s (Base, Arbitrum) gas costs a fraction of a cent; on Ethereum L1 it can cost dollars.</li>
-      <li><b>That price gap is exactly why the whole "agent micropayment" economy can only live on L2</b> (Week 5).</li>
-    </ul>
-    <div class="callout"><b>R1 live demo:</b> txcity.io/v/eth-btc — queued people = pending txs, a bus = a block, the fare = the fee. <b>"Higher fee boards first" — plant this now; Week 4's MEV grows straight out of it.</b></div>
-    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
-  </section>
-
   <!-- 14 · four ops -->
   <section class="slide">
     <div class="eyebrow">Hands-on · the four basic web3.py ops (repeated every week)</div>
@@ -317,27 +302,10 @@
     <h2>Smart contracts — code that lives on-chain</h2>
     <div class="rule"></div>
     <ul>
-      <li>A program deployed at an address; <b>anyone can call it with a transaction</b>, it runs exactly as written, in public, trusting no operator.</li>
-      <li>A token (USDC), an exchange (Uniswap), a lending market — <b>they're all just contracts</b>.</li>
-      <li><b>Composability:</b> any contract can call any other. <b>DeFi's superpower — and its biggest attack surface</b> (Weeks 3 &amp; 6).</li>
+      <li>A program at an address; <b>anyone can call it</b>, it runs exactly as written, trusting no operator.</li>
+      <li>A token, an exchange, a lending market — <b>all just contracts</b>. And <b>any contract can call any other = composability</b> (the superpower, and the attack surface).</li>
     </ul>
-    <div class="callout"><b>Live clickable demo:</b> vending-machine-callable.html — a human and another contract call the same <span class="mono">buy()</span>; coins in, item out, change back. Flip on "a human runs it" and it can take your coins and give nothing. <b>A contract's "no operator to trust" is simply: the code left no backdoor for an operator.</b></div>
-    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
-  </section>
-
-  <!-- 16 · Part 6 the ladder -->
-  <section class="slide">
-    <div class="eyebrow">Part 6 · the method for the whole term</div>
-    <h2>The 5-rung ladder</h2>
-    <table>
-      <tr><th>Rung</th><th>You…</th><th>Track</th></tr>
-      <tr><td>R1 See</td><td>understand <i>what it is</i></td><td>Everyone</td></tr>
-      <tr><td>R2 Use</td><td>operate it in a browser site / wallet</td><td>Everyone</td></tr>
-      <tr><td>R3 Drive</td><td>call it with web3.py (via Claude Code)</td><td>Main / side</td></tr>
-      <tr><td>R4 Build</td><td>write &amp; deploy a toy contract yourself</td><td>Side</td></tr>
-      <tr><td>R5 Delegate</td><td>hand the ability to your own agent</td><td>Side</td></tr>
-    </table>
-    <div class="callout"><b>Every topic lands on the same question: can an agent do this by itself?</b></div>
+    <div class="callout">▶ <b>Demo now:</b> <span class="mono">vending-machine-callable.html</span> — a person and another contract call the same <span class="mono">buy()</span>: coins in, item out, change back. Flip on "a human runs it" → it can keep your coins. <b>"No operator to trust" = the code left no backdoor.</b></div>
     <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
   </section>
 
