@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Composability Playground</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1a1f2b; --muted:#5b6472; --line:#dfe3ea;
+    --wallet:#2563eb; --amm:#7c3aed; --token:#0d9488; --ok:#16a34a; --bad:#dc2626;
+    --flash:#fde68a; --accent:#111827;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#0e1116; --card:#171b22; --ink:#e6e9ef; --muted:#9aa4b2; --line:#2a303a;
+    --wallet:#60a5fa; --amm:#a78bfa; --token:#2dd4bf; --ok:#4ade80; --bad:#f87171; --flash:#4d451f; --accent:#e6e9ef;
+  }}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,Segoe UI,Roboto,"PingFang SC",sans-serif}
+  .wrap{max-width:920px;margin:0 auto;padding:22px 18px 60px}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+  button{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink);
+    padding:9px 14px;border-radius:10px;cursor:pointer}
+  button.primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .machines{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:680px){.machines{grid-template-columns:1fr}}
+  .m{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:14px;transition:.25s}
+  .m.flash{border-color:var(--amm);box-shadow:0 0 0 4px var(--flash)}
+  .m .tag{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+  .m.wallet .tag{color:var(--wallet)} .m.amm .tag{color:var(--amm)} .m.token .tag{color:var(--token)}
+  .m h3{margin:2px 0 8px;font-size:17px}
+  .rule{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--muted);background:transparent;border:1px dashed var(--line);
+    border-radius:8px;padding:7px 9px;margin:8px 0}
+  .bal{display:flex;justify-content:space-between;padding:3px 0;border-top:1px solid var(--line)}
+  .bal b{font-variant-numeric:tabular-nums}
+  .flowrow{display:flex;justify-content:center;gap:8px;margin:14px 0 2px;min-height:26px;flex-wrap:wrap}
+  .chip{font:12px ui-monospace,Menlo,monospace;background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:3px 10px;opacity:0;transform:translateY(6px);transition:.25s}
+  .chip.show{opacity:1;transform:none}
+  .stack{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:16px;
+    font:13px/1.7 ui-monospace,Menlo,monospace;min-height:120px;white-space:pre-wrap}
+  .stack .in{color:var(--amm)} .stack .ret{color:var(--ok)} .stack .rug{color:var(--bad);font-weight:700}
+  .note{margin-top:14px;color:var(--muted);font-size:13px}
+  .owner{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .owner label{display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer}
+  .owner .hint{color:var(--muted);font-size:13px;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Composability Playground — machines calling machines</h1>
+  <p class="sub">A smart contract is a vending machine made of math. Click <b>Swap</b>: your wallet calls the AMM, the AMM calls the Token. Watch the call cascade, watch balances update by a fixed rule — the same input always gives the same output, and no owner can reach in.</p>
+
+  <div class="controls">
+    <button class="primary" id="swapBtn">▶ Swap 5 ETH → USDC</button>
+    <button id="resetBtn">↺ Reset</button>
+    <span class="sub" id="status" style="margin:0"></span>
+  </div>
+
+  <div class="machines">
+    <div class="m wallet" id="mWallet">
+      <div class="tag">You · EOA</div>
+      <h3>👛 Wallet</h3>
+      <div class="rule">calls AMM.swap(5 ETH)</div>
+      <div class="bal"><span>ETH</span><b id="wEth">10.00</b></div>
+      <div class="bal"><span>USDC</span><b id="wUsdc">0.00</b></div>
+    </div>
+    <div class="m amm" id="mAmm">
+      <div class="tag">Contract</div>
+      <h3>⚙️ AMM</h3>
+      <div class="rule">x·y=k → dy=y−k/(x+dx)<br>then calls Token.transfer(you, dy)</div>
+      <div class="bal"><span>ETH (x)</span><b id="aEth">100.00</b></div>
+      <div class="bal"><span>USDC (y)</span><b id="aUsdc">200,000</b></div>
+      <div class="bal"><span>price</span><b id="aPx">2000.0</b></div>
+    </div>
+    <div class="m token" id="mToken">
+      <div class="tag">Contract</div>
+      <h3>🪙 Token (USDC)</h3>
+      <div class="rule">transfer(to,amt): balances move</div>
+      <div class="bal"><span>AMM holds</span><b id="tAmm">200,000</b></div>
+      <div class="bal"><span>You hold</span><b id="tYou">0.00</b></div>
+    </div>
+  </div>
+
+  <div class="flowrow" id="flow"></div>
+
+  <div class="stack" id="stack">Call stack will appear here…</div>
+
+  <div class="owner">
+    <label><input type="checkbox" id="trusted" /> 🔓 Trusted-operator mode (pretend the Token is a normal server run by a human)</label>
+    <div class="hint" id="ownerHint">Off = real contract: the Token has <b>no owner hook</b>; a swap always completes as written. Turn it on to reveal an “Owner: intercept &amp; keep funds” button — and see why “code is law” matters.</div>
+    <div id="ownerBox" style="margin-top:10px;display:none">
+      <button id="rugBtn" style="border-color:var(--bad);color:var(--bad)">😈 Owner: intercept &amp; keep the funds</button>
+    </div>
+  </div>
+
+  <p class="note">Mental model: <b>You → AMM → Token</b> is one atomic transaction — a call stack that nests and unwinds. Each machine runs only its fixed, public rule. That contracts can freely call other contracts is <b>composability</b>: the superpower you’ll exploit (flash loans, Week 3) and the attack surface you’ll defend (MEV / security, Weeks 4 &amp; 6).</p>
+</div>
+
+<script>
+(function(){
+  const S0 = ()=>({ wEth:10, wUsdc:0, aEth:100, aUsdc:200000, tAmm:200000, tYou:0 });
+  let s = S0();
+  const $ = id => document.getElementById(id);
+  const fmt = (n,d=2)=> n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+
+  function render(){
+    $('wEth').textContent=fmt(s.wEth); $('wUsdc').textContent=fmt(s.wUsdc);
+    $('aEth').textContent=fmt(s.aEth); $('aUsdc').textContent=fmt(s.aUsdc,0);
+    $('aPx').textContent=fmt(s.aUsdc/s.aEth,1);
+    $('tAmm').textContent=fmt(s.tAmm,0); $('tYou').textContent=fmt(s.tYou);
+  }
+  render();
+
+  const sleep = ms => new Promise(r=>setTimeout(r,ms));
+  function flash(id){ const el=$(id); el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),600); }
+  function chip(text){ const f=$('flow'); const c=document.createElement('span'); c.className='chip'; c.textContent=text; f.appendChild(c); requestAnimationFrame(()=>c.classList.add('show')); }
+  function logline(html){ $('stack').innerHTML += html + "\n"; }
+
+  let busy=false;
+  async function swap(){
+    if(busy) return; busy=true;
+    $('swapBtn').disabled=true;
+    $('flow').innerHTML=''; $('stack').innerHTML='';
+    const dx=5, fee=0.003;
+    // 1) Wallet -> AMM
+    flash('mWallet'); $('status').textContent='① You call AMM.swap(5 ETH)…';
+    logline('<span class="in">You.call → AMM.swap(5 ETH)</span>');
+    chip('You → AMM'); await sleep(700);
+    // 2) AMM computes x*y=k
+    flash('mAmm');
+    const k=s.aEth*s.aUsdc, dxeff=dx*(1-fee);
+    const dy=s.aUsdc - k/(s.aEth+dxeff);
+    logline('  AMM: x·y=k → dy = '+fmt(dy)+' USDC');
+    $('status').textContent='② AMM runs x·y=k, then calls Token.transfer…';
+    chip('AMM → Token'); await sleep(700);
+    // 3) AMM -> Token.transfer(you, dy)
+    flash('mToken');
+    if($('trusted').checked && window.__rug){
+      logline('  Token(owner): <span class="rug">INTERCEPT — kept your funds, sent nothing</span>');
+      $('status').textContent='⛔ Trusted operator rugged you: paid in, got nothing.';
+      // wallet already "spent" nothing yet in this model; show the danger: ETH would be taken, no USDC out
+      window.__rug=false; busy=false; $('swapBtn').disabled=false;
+      chip('✗ reverted-in-real-life'); return;
+    }
+    logline('    Token.transfer(you, '+fmt(dy)+') <span class="ret">✓</span>');
+    s.tAmm -= dy; s.tYou += dy; s.aUsdc -= dy; s.wUsdc += dy;   // token moves
+    s.aEth += dx; s.wEth -= dx;                                  // ETH into pool
+    chip('Token ✓ → AMM ✓ → You'); await sleep(500);
+    logline('  AMM.return('+fmt(dy)+' USDC) <span class="ret">↩</span>');
+    logline('<span class="in">You.receive '+fmt(dy)+' USDC</span> <span class="ret">✓ done (1 atomic tx)</span>');
+    render();
+    $('status').textContent='✓ Same input → same rule → deterministic output. Price moved '+fmt(2000,0)+' → '+fmt(s.aUsdc/s.aEth,1)+' (slippage).';
+    busy=false; $('swapBtn').disabled=false;
+  }
+
+  $('swapBtn').onclick=swap;
+  $('resetBtn').onclick=()=>{ s=S0(); render(); $('flow').innerHTML=''; $('stack').innerHTML='Call stack will appear here…'; $('status').textContent=''; };
+
+  $('trusted').onchange=e=>{
+    $('ownerBox').style.display = e.target.checked ? 'block':'none';
+    $('ownerHint').innerHTML = e.target.checked
+      ? 'On = a normal server: a human owner sits in the middle and <b>can betray you</b>. Click the red button, then Swap — the owner keeps your money.'
+      : 'Off = real contract: the Token has <b>no owner hook</b>; a swap always completes as written. Turn it on to reveal an “Owner: intercept &amp; keep funds” button.';
+    if(!e.target.checked) window.__rug=false;
+  };
+  $('rugBtn').onclick=()=>{ window.__rug=true; $('status').textContent='😈 Owner armed. Now click Swap — watch the “contract” betray you (only possible because a human is in the loop).'; };
+})();
+</script>
+</body>
+</html>

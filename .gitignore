@@ -1,0 +1,18 @@
+# secrets — never commit
+.env
+.env.*
+*.key
+group-keys.txt
+*-keys.txt
+*.testnet.md
+_group-wallets*
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# os
+.DS_Store

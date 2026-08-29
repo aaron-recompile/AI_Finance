@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Finance · Week 1</title>
+<style>
+  :root{
+    --bg:#0f1420; --bg2:#131a2a; --card:#161d2e; --ink:#eef2f8; --muted:#9aa7bd;
+    --line:#293349; --accent:#5eead4; --accent2:#818cf8; --warn:#fbbf24; --bad:#f87171; --ok:#4ade80;
+    --chip:#1d2740;
+  }
+  :root[data-theme="light"]{
+    --bg:#eef1f6; --bg2:#e7ebf3; --card:#ffffff; --ink:#141a26; --muted:#5b6577; --line:#dde3ec;
+    --accent:#0d9488; --accent2:#6366f1; --warn:#b45309; --bad:#dc2626; --ok:#16a34a; --chip:#eef2f8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:radial-gradient(1200px 700px at 78% -10%,var(--bg2),var(--bg));color:var(--ink);
+    font:16px/1.55 -apple-system,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB",sans-serif;overflow:hidden}
+  .deck{height:100vh;display:flex;align-items:center;justify-content:center;padding:3vh 3vw}
+  .slide{width:min(1180px,94vw);height:min(700px,92vh);background:linear-gradient(180deg,var(--card),color-mix(in srgb,var(--card) 90%,var(--bg)));
+    border:1px solid var(--line);border-radius:22px;box-shadow:0 30px 80px rgba(0,0,0,.35);
+    padding:40px 56px 58px;position:relative;display:none;flex-direction:column;overflow:hidden}
+  .slide.on{display:flex;animation:in .35s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .slide::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;
+    background:linear-gradient(180deg,var(--accent),var(--accent2))}
+
+  .eyebrow{font-size:12.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  h1{font-size:50px;line-height:1.08;font-weight:850;letter-spacing:-.01em}
+  h2{font-size:29px;line-height:1.16;font-weight:820;letter-spacing:-.01em;margin-bottom:4px}
+  .lead{font-size:18px;color:var(--muted);margin-top:12px;max-width:62ch}
+  .rule{height:3px;width:60px;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;margin:14px 0 16px}
+
+  ul{list-style:none;display:flex;flex-direction:column;gap:11px;margin-top:6px}
+  li{position:relative;padding-left:30px;font-size:18.5px;line-height:1.4}
+  li::before{content:"";position:absolute;left:2px;top:.55em;width:10px;height:10px;border-radius:3px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));transform:rotate(45deg)}
+  li b{color:var(--ink);font-weight:800}
+  li .k{color:var(--accent)}
+  li small{display:block;font-size:14px;color:var(--muted);padding-left:0;margin-top:2px;line-height:1.4}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:4px}
+  .box{background:var(--chip);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .box h3{font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:9px}
+  .box.alt h3{color:var(--accent2)}
+  .box ul{gap:8px} .box li{font-size:15.5px;padding-left:22px} .box li::before{width:8px;height:8px;top:.5em}
+
+  table{border-collapse:collapse;width:100%;margin-top:8px;font-size:15.5px}
+  th,td{text-align:left;padding:8px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--accent);font-size:13px;letter-spacing:.06em;text-transform:uppercase;font-weight:800}
+  td b{font-weight:800}
+  tr td:first-child{color:var(--muted);white-space:nowrap;font-weight:700}
+
+  code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+  .code{background:var(--chip);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-top:12px;
+    font:16.5px/1.65 ui-monospace,Menlo,monospace;color:var(--ink)}
+  .code .c{color:var(--muted)} .code .g{color:var(--accent)}
+  .callout{margin-top:16px;background:color-mix(in srgb,var(--accent) 12%,transparent);
+    border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);border-radius:12px;padding:13px 17px;font-size:15.5px;line-height:1.5}
+  .callout.warn{background:color-mix(in srgb,var(--warn) 14%,transparent);border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
+  .callout b{color:var(--ink)}
+
+  .title-slide{justify-content:center}
+  .title-slide h1{font-size:60px}
+  .title-slide .meta{margin-top:28px;display:flex;gap:26px;flex-wrap:wrap;color:var(--muted);font-size:17px}
+  .title-slide .meta span{display:flex;align-items:center;gap:8px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+
+  .divider{justify-content:center}
+  .divider .num{font-size:20px;color:var(--accent);font-weight:800;letter-spacing:.1em}
+  .divider h1{font-size:56px;margin-top:8px}
+
+  .foot{position:absolute;left:56px;right:56px;bottom:20px;display:flex;justify-content:space-between;
+    align-items:center;font-size:13px;color:var(--muted)}
+  .foot .fname{font-weight:700}
+  .progress{position:fixed;left:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+    transition:width .3s;z-index:5}
+  .nav{position:fixed;right:18px;bottom:16px;display:flex;gap:8px;z-index:6}
+  .nav button,.topbtn{font:inherit;font-weight:700;color:var(--ink);background:var(--card);border:1px solid var(--line);
+    border-radius:10px;padding:8px 12px;cursor:pointer}
+  .nav button:hover,.topbtn:hover{border-color:var(--accent)}
+  .counter{position:fixed;right:18px;top:16px;font-size:13px;color:var(--muted);background:var(--card);
+    border:1px solid var(--line);border-radius:999px;padding:6px 12px;z-index:6}
+  .topbtns{position:fixed;left:18px;top:14px;display:flex;gap:8px;z-index:6}
+  .topbtn{padding:6px 10px;font-size:13px}
+  .hint{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);font-size:12px;color:var(--muted);z-index:4;opacity:.7}
+  @media(max-width:640px){
+    .slide{padding:34px 30px 56px} h1{font-size:34px} .title-slide h1{font-size:38px} h2{font-size:24px}
+    li{font-size:17px} .two{grid-template-columns:1fr} .foot{left:30px;right:30px}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="prog"></div>
+<div class="counter" id="counter">1 / 1</div>
+<div class="topbtns">
+  <button class="topbtn" id="themeBtn">◑ Theme</button>
+  <button class="topbtn" id="fsBtn">⛶ Full</button>
+</div>
+<div class="nav">
+  <button id="prev">◀</button>
+  <button id="next">▶</button>
+</div>
+<div class="hint">← → / Space to move · F fullscreen · O jump</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · Title -->
+  <section class="slide title-slide">
+    <div class="eyebrow">MB / CSE 599 · AI Finance</div>
+    <h1>On-Chain Foundations<br>Intro &amp; Demystification</h1>
+    <p class="lead">Week 1 · Session 1 — private keys, transactions, gas, smart contracts, and getting the toolchain set up.</p>
+    <div class="meta">
+      <span><i class="dot"></i> 1.5 hours</span>
+      <span><i class="dot"></i> Testnet only · never real money</span>
+      <span><i class="dot"></i> Instructor Mingjing Zhang</span>
+    </div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span>Session 1 · Intro</span></div>
+  </section>
+
+  <!-- 2 · How this course runs -->
+  <section class="slide">
+    <div class="eyebrow">How this course runs</div>
+    <h2>We don't <em>study</em> blockchains — we <em>build</em> on them</h2>
+    <div class="rule"></div>
+    <ul>
+      <li>Every concept climbs the same <b>5-rung ladder</b>: <span class="k">R1</span> see it → <span class="k">R2</span> use it in a wallet → <span class="k">R3</span> drive it with code → <span class="k">R4</span> build it → <span class="k">R5</span> hand it to your agent.</li>
+      <li><b>Where you stop is your track</b> — not everyone writes contracts, but everyone must understand and use them.</li>
+      <li>All notes are AI-generated Markdown on GitHub / Drive; <b>stuck? ask AI — that's the method here, not cheating</b>.</li>
+      <li><b>Testnet the whole way, never real money</b> — do every step by hand with play-money.</li>
+    </ul>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 3 · Why blockchain (concrete hook first) -->
+  <section class="slide">
+    <div class="eyebrow">Core motivation</div>
+    <h2>Why must it be a blockchain? Start with "default"</h2>
+    <div class="rule"></div>
+    <div class="two">
+      <div class="box"><h3>Human ↔ Human</h3>
+        <ul>
+          <li>Don't repay a loan → sue in <b>court</b></li>
+          <li>Backed by police, enforcement, credit score</li>
+          <li>A whole <b>institutional system</b> backstops it</li>
+        </ul>
+      </div>
+      <div class="box alt"><h3>Agent ↔ Agent</h3>
+        <ul>
+          <li>No court hears a machine's case</li>
+          <li>No police; an agent has no body to jail</li>
+          <li>Rules can only be enforced by <b>code itself</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout"><b>In a machine economy, "law" must become "code"</b> — written as a smart contract that auto-liquidates and auto-seizes collateral on time. The place that carries it and everyone agrees on is the <b>blockchain</b>.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 4 · Big picture -->
+  <section class="slide">
+    <div class="eyebrow">Big picture · why this course exists</div>
+    <h2>When AI turns from a "tool" into an "autonomous economic actor"</h2>
+    <div class="rule"></div>
+    <ul>
+      <li>Agents need to <b>hold assets, pay each other, and act with no human watching</b>.</li>
+      <li>Human banking (KYC, business hours, layered intermediary settlement) <b>simply doesn't fit machines</b>.</li>
+      <li>Public chains are the <b>native substrate for machine-to-machine finance</b>: programmable, permissionless, 24/7.</li>
+      <li>The micropayment gap: <b>an AI wants to pay another AI $0.001 — how, with a credit card?</b><small>It can't — no account, no business hours, no card transaction that small.</small></li>
+    </ul>
+    <div class="callout">This course teaches you to operate here — <b>and to build the agents that will live here</b>.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 5 · Part 0 divider -->
+  <section class="slide divider">
+    <div class="num">PART 0</div>
+    <h1>What a blockchain is<br>An objective ledger + two models</h1>
+    <p class="lead">Before installing tools, get clear on what we're actually dealing with.</p>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span>Part 0</span></div>
+  </section>
+
+  <!-- 6 · objective ledger -->
+  <section class="slide">
+    <div class="eyebrow">Part 0 · ①</div>
+    <h2>A blockchain = an objective, public ledger that changes only by the rules</h2>
+    <div class="rule"></div>
+    <ul>
+      <li>It is <b>not a company's database</b> (a company can secretly edit that).</li>
+      <li>It's a state snapshot <b>the whole network agrees on, anyone can read, updated only by fixed rules</b>.</li>
+      <li>"How much you own, what's locked in this contract" is an <b>objective fact</b> anyone can independently verify.</li>
+      <li>This is the bedrock: <b>agents can do business without trust precisely because the ledger is objective and the rules are public and auto-enforced</b>.</li>
+    </ul>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 7 · two models -->
+  <section class="slide">
+    <div class="eyebrow">Part 0 · ② understand this and you understand half the industry</div>
+    <h2>Two main chains, two accounting models</h2>
+    <table>
+      <tr><th></th><th>Bitcoin</th><th>Ethereum</th></tr>
+      <tr><td>Mental model</td><td><b>Cash / checks</b> (UTXO)</td><td><b>Bank account</b> (Account)</td></tr>
+      <tr><td>How money is stored</td><td>A set of "unspent outputs"; spend old ones, mint new</td><td>Each address holds a <b>balance number</b>, added/subtracted directly</td></tr>
+      <tr><td>What it can compute</td><td>Scripting <b>deliberately limited</b>: multisig, timelocks, hashlocks</td><td><b>Turing-complete</b>: any logic; an address can carry code (a contract)</td></tr>
+      <tr><td>Best at</td><td>Extremely auditable <b>value storage &amp; transfer</b></td><td>Any <b>financial logic</b> — DeFi / lending / AMM</td></tr>
+    </table>
+    <div class="callout">This course builds agents that run strategies → we need <b>programmable rules</b> → main arena is <b>Ethereum (EVM) and its cheap L2s</b>. Bitcoin isn't worse, it's a <b>different tradeoff</b>.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 8 · smart contract = code at an address -->
+  <section class="slide">
+    <div class="eyebrow">Part 0 · ③</div>
+    <h2>A smart contract = "that piece of code living at an address"</h2>
+    <div class="rule"></div>
+    <ul>
+      <li>Because Ethereum is an <b>account + code</b> model, you can write "lending terms" or "swap rules" as a program deployed at an address.</li>
+      <li><b>Anyone can call it, it runs exactly as written, and no one can change the result mid-way</b>.</li>
+      <li>The <b>"law becomes code"</b> from the last slide — technically, this is it.</li>
+    </ul>
+    <div class="callout"><b>Mental model:</b> a vending machine made of math — put in the right input, get the guaranteed output, and not even the owner can reach in mid-purchase and change it. (Part 5 shows a clickable demo.)</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 9 · web3.py reads the real chain -->
+  <section class="slide">
+    <div class="eyebrow">Part 0 · ④ live-run code/read_chain.py</div>
+    <h2>web3.py = your hand reaching into this objective world</h2>
+    <div class="rule"></div>
+    <ul>
+      <li>Connect to a <b>node (RPC)</b> → read the <b>latest block height and gas price</b> (compare live to etherscan.io — the numbers match).</li>
+      <li>Read an address's <b>native ETH balance</b> (the node reads account state) — the account model, live.</li>
+      <li>Read its <b>USDC token balance</b> (kept in the contract's own ledger, so you "ask the contract") — the most basic contract interaction.</li>
+    </ul>
+    <div class="callout">We read <b>real Ethereum mainnet</b> (reading is risk-free; we switch to testnet only when we "write"). "No node installed, nothing spent, no account — and we read real on-chain data, because it's objective and public. <b>You just touched that objective world for the first time.</b>"</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 10 · Part 1 environment (simplified) -->
+  <section class="slide">
+    <div class="eyebrow">Part 1 · everyone does this live, together</div>
+    <h2>Environment setup: install the code toolchain</h2>
+    <div class="rule"></div>
+    <ul>
+      <li><b>Python + web3.py</b><small>talk to the chain in code (conda env, installed once)</small></li>
+      <li><b>GitHub</b><small>submit homework + download the course code</small></li>
+      <li><b>Claude Code</b><small>your AI pair — write &amp; debug together</small></li>
+      <li><b>Testnet + faucet</b><small>free practice chain + worthless play-money</small></li>
+    </ul>
+    <div class="callout warn"><b>Your wallet = the keypair from <code>gen_wallet.py</code></b>; MetaMask not required. Want a UI? Use official browser sites (basescan / faucet).</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 11 · Part 2 wallet = keypair -->
+  <section class="slide">
+    <div class="eyebrow">Part 2 · with code/gen_wallet.py</div>
+    <h2>A wallet is really just a keypair</h2>
+    <div class="code"><span class="c">private key</span> ──(one-way math)──▶ <span class="c">public key</span> ──(hash)──▶ <span class="g">address 0x02D3…</span></div>
+    <ul>
+      <li><b>Private key:</b> a huge secret number. <b>Whoever holds it controls the money.</b> Never share it.</li>
+      <li><b>Address:</b> derived from the key, public — others use it to pay you.</li>
+      <li><b>Analogy:</b> the address is your mailbox (anyone can drop mail in); the private key is the only key that opens it. <b>Lose it = locked forever. There is no "forgot password".</b></li>
+    </ul>
+    <div class="callout">In class: everyone generates a pair and <b>pastes only the address into chat</b>. "Nobody's tempted to paste the private key to show off — you instinctively know what it protects." (Throwaway practice key — never real money.)</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 12 · Part 3 transaction -->
+  <section class="slide">
+    <div class="eyebrow">Part 3</div>
+    <h2>A transaction = one signed message</h2>
+    <div class="code">{ from, to, value, data, nonce } <span class="g">+ your signature (r, s, v)</span></div>
+    <ul>
+      <li>The network <b>recovers your address from the signature</b> — proving it's you — while you <b>never expose your private key</b>.</li>
+      <li>The <b>nonce (a counter)</b> stops the same signed message from being replayed twice.</li>
+    </ul>
+    <div class="callout"><b>"Sign an intent, the network verifies and executes" is the backbone of everything in this course</b> — the same shape as an agent placing an order or authorizing a payment (Weeks 5 &amp; 6).</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 13 · Part 4 gas -->
+  <section class="slide">
+    <div class="eyebrow">Part 4</div>
+    <h2>Gas — paying for computation</h2>
+    <div class="rule"></div>
+    <ul>
+      <li>Every transaction burns <b>gas</b>: paid to the network to run your computation and store the result. <b>No gas, no execution.</b></li>
+      <li>Gas is why you <b>can't spam the chain for free</b>.</li>
+      <li>On cheap L2s (Base, Arbitrum) gas costs a fraction of a cent; on Ethereum L1 it can cost dollars.</li>
+      <li><b>That price gap is exactly why the whole "agent micropayment" economy can only live on L2</b> (Week 5).</li>
+    </ul>
+    <div class="callout"><b>R1 live demo:</b> txcity.io/v/eth-btc — queued people = pending txs, a bus = a block, the fare = the fee. <b>"Higher fee boards first" — plant this now; Week 4's MEV grows straight out of it.</b></div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 14 · four ops -->
+  <section class="slide">
+    <div class="eyebrow">Hands-on · the four basic web3.py ops (repeated every week)</div>
+    <h2>Read · Send an asset · Interact with a contract · UI check</h2>
+    <table>
+      <tr><th>Op</th><th>Script / point</th></tr>
+      <tr><td>① Read balance + read contract</td><td>read_chain.py: read block/gas, native ETH (ask the node), USDC (ask the contract). <b>Reading changes nothing, costs nothing</b></td></tr>
+      <tr><td>② Send a native asset</td><td>send_asset.py: <b>assemble → sign with key → broadcast → wait for inclusion</b>; see a tx's full life cycle</td></tr>
+      <tr><td>③ Interact with a contract</td><td>interact_contract.py: deploy a DEMO token → balanceOf (read) → transfer (write). <b>Nails call vs send / view vs state change</b></td></tr>
+      <tr><td>④ UI check</td><td>MetaMask: hit Send, view balances. <b>Code and UI are two doors to the same thing</b></td></tr>
+    </table>
+    <div class="callout warn"><b>The hub question (thrown to Session 2):</b> you can now hold, transfer, and even call contracts to move assets — <b>but "transfer" isn't "trade". You want to swap ETH for USDC — who trades with you? There's no counterparty waiting.</b></div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 15 · Part 5 smart contract -->
+  <section class="slide">
+    <div class="eyebrow">Part 5</div>
+    <h2>Smart contracts — code that lives on-chain</h2>
+    <div class="rule"></div>
+    <ul>
+      <li>A program deployed at an address; <b>anyone can call it with a transaction</b>, it runs exactly as written, in public, trusting no operator.</li>
+      <li>A token (USDC), an exchange (Uniswap), a lending market — <b>they're all just contracts</b>.</li>
+      <li><b>Composability:</b> any contract can call any other. <b>DeFi's superpower — and its biggest attack surface</b> (Weeks 3 &amp; 6).</li>
+    </ul>
+    <div class="callout"><b>Live clickable demo:</b> vending-machine-callable.html — a human and another contract call the same <span class="mono">buy()</span>; coins in, item out, change back. Flip on "a human runs it" and it can take your coins and give nothing. <b>A contract's "no operator to trust" is simply: the code left no backdoor for an operator.</b></div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 16 · Part 6 the ladder -->
+  <section class="slide">
+    <div class="eyebrow">Part 6 · the method for the whole term</div>
+    <h2>The 5-rung ladder</h2>
+    <table>
+      <tr><th>Rung</th><th>You…</th><th>Track</th></tr>
+      <tr><td>R1 See</td><td>understand <i>what it is</i></td><td>Everyone</td></tr>
+      <tr><td>R2 Use</td><td>operate it in a browser site / wallet</td><td>Everyone</td></tr>
+      <tr><td>R3 Drive</td><td>call it with web3.py (via Claude Code)</td><td>Main / side</td></tr>
+      <tr><td>R4 Build</td><td>write &amp; deploy a toy contract yourself</td><td>Side</td></tr>
+      <tr><td>R5 Delegate</td><td>hand the ability to your own agent</td><td>Side</td></tr>
+    </table>
+    <div class="callout"><b>Every topic lands on the same question: can an agent do this by itself?</b></div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 17 · R5 homework -->
+  <section class="slide">
+    <div class="eyebrow">R5 preview + this session's homework</div>
+    <h2>Hand the operations to an agent</h2>
+    <div class="rule"></div>
+    <ul>
+      <li>In class you <b>ran three things by hand</b> (read balance / send asset / interact with a contract).</li>
+      <li>Homework: <b>wrap them as agent tools, add guardrails, and let the agent do them</b> — climb to R5.</li>
+      <li><b>agent_tools.py:</b> every "write" op first passes a <b>Guard (per-tx cap + whitelist)</b>; a request to send 5 ETH or pay a stranger is <b>blocked off-chain, never broadcast</b>.</li>
+      <li><b>Grading:</b> screenshot of agent_tools running by hand = credit; <b>OpenClaw agent actually working = A+</b>.</li>
+    </ul>
+    <div class="callout warn"><b>Give an AI a private key, and you must give it a guardrail at the same time.</b> Week 5 formalizes this as "coordinator / signer separation".</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 18 · Part 7 the map -->
+  <section class="slide">
+    <div class="eyebrow">Part 7 · this session is the map of the whole course</div>
+    <h2>Every week answers a gap this session opened</h2>
+    <table>
+      <tr><th>The gap from Session 1</th><th>Leads to</th></tr>
+      <tr><td>You can transfer, but no one trades with you</td><td><b>Session 2: AMM</b> — swaps with no counterparty</td></tr>
+      <tr><td>You want limit orders / leverage</td><td><b>Week 6: CLOB + perpetuals</b> (Hyperliquid)</td></tr>
+      <tr><td>You don't want to sell, but want to use your money</td><td><b>Week 3: lending &amp; liquidation</b></td></tr>
+      <tr><td>Txs queue in public; order = who profits</td><td><b>Week 4: MEV</b> — ordering = money, the mempool; TradFi HFT plays this too</td></tr>
+      <tr><td>Hand any of the above to a self-signing agent</td><td><b>Weeks 5 &amp; 7: agentification &amp; integration</b></td></tr>
+    </table>
+    <div class="callout">In one line: <b>Session 1 teaches you to "touch" this world (read + send one tx); each later week teaches you to "do" something more complex on it; finally, you hand it to an agent.</b></div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 19 · Key takeaways -->
+  <section class="slide">
+    <div class="eyebrow">Key takeaways</div>
+    <h2>Walk away with these five</h2>
+    <div class="rule"></div>
+    <ul>
+      <li><b>A wallet = a keypair</b>; the private key is everything; the address is public.</li>
+      <li><b>A transaction = a signed intent</b>; the network verifies by recovering the address from the signature.</li>
+      <li><b>Gas</b> pays for computation; cheap L2s are what make agent-scale micropayments possible.</li>
+      <li><b>A smart contract</b> is public, unstoppable code living at an address; <b>composability</b> is both a superpower and a risk.</li>
+      <li>Next session: <b>stablecoins + AMM (x·y=k)</b> — anyone can swap, at the cost of slippage.</li>
+    </ul>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span>Session 1 · end</span></div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const N = slides.length;
+  let i = 0;
+  const prog = document.getElementById('prog');
+  const counter = document.getElementById('counter');
+  function show(n){
+    i = Math.max(0, Math.min(N-1, n));
+    slides.forEach((s,k)=>s.classList.toggle('on', k===i));
+    prog.style.width = ((i+1)/N*100)+'%';
+    counter.textContent = (i+1)+' / '+N;
+    try{ location.hash = '#'+(i+1); }catch(e){}
+  }
+  function nextS(){ show(i+1); }
+  function prevS(){ show(i-1); }
+  document.getElementById('next').onclick = nextS;
+  document.getElementById('prev').onclick = prevS;
+  document.addEventListener('keydown', e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){ e.preventDefault(); nextS(); }
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); prevS(); }
+    else if(e.key==='Home'){ show(0); }
+    else if(e.key==='End'){ show(N-1); }
+    else if(e.key==='f'||e.key==='F'){ toggleFs(); }
+    else if(e.key==='o'||e.key==='O'){ jump(); }
+  });
+  document.getElementById('deck').addEventListener('click', e=>{
+    if(e.target.closest('button,a,input')) return;
+    const x = e.clientX / window.innerWidth;
+    if(x>0.62) nextS(); else if(x<0.38) prevS();
+  });
+  function jump(){
+    const n = prompt('Go to slide? (1–'+N+')', (i+1));
+    if(n){ const k=parseInt(n,10); if(!isNaN(k)) show(k-1); }
+  }
+  function toggleFs(){
+    if(!document.fullscreenElement){ document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen(); }
+    else { document.exitFullscreen&&document.exitFullscreen(); }
+  }
+  document.getElementById('fsBtn').onclick = toggleFs;
+  document.getElementById('themeBtn').onclick = ()=>{
+    const r = document.documentElement;
+    r.setAttribute('data-theme', r.getAttribute('data-theme')==='light' ? 'dark' : 'light');
+  };
+  const start = parseInt((location.hash||'#1').slice(1),10);
+  show(isNaN(start)?0:start-1);
+})();
+</script>
+</body>
+</html>
