@@ -70,6 +70,9 @@ conda --version
 > 🪟 "not recognized" → make sure you opened **Anaconda Prompt** (not PowerShell/CMD), or reinstall and confirm it finished.
 > 🍎🐧 "command not found" → **fully quit and reopen** the terminal once. Still missing on macOS? run `source ~/miniconda3/bin/activate` then `conda init zsh`, and reopen Terminal.
 
+## Step 1.5 - Install Python (one time)
+**Download page (pick your OS):** https://www.python.org/downloads/release/python-3110/ **
+
 ## Step 2 — Create the course environment
 
 ```bash
