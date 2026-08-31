@@ -27,6 +27,7 @@ The **only** real difference is **which terminal you open** and **how you set a 
 | # | Step | Done when… |
 |---|------|-----------|
 | 1 | Install **Miniconda** | `conda --version` prints a version |
+| 1.5 | Install **Python** |`python -V` prints a version |
 | 2 | Create the env (**Python 3.11**) | your prompt shows `(ai_finance)` |
 | 3 | Install **web3** | `python -c "import web3"` gives no error |
 | 4 | Get this **repo's code** | you can `cd` into `week-01/code` |
