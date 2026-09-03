@@ -11,9 +11,9 @@
 The **only** real difference is **which terminal you open** and **how you set a variable**:
 
 - **🍎 macOS / 🐧 Linux:** open **Terminal**.
-- **🪟 Windows:** open **"Anaconda Prompt"** from the Start menu (after Part A · Step 1) — **not** PowerShell or CMD.
+- **🪟 Windows:** open **Command Prompt** (press Start, type **`cmd`**, hit Enter) — **not** PowerShell.
 
-| | 🍎 macOS / Linux (one line) | 🪟 Windows (cmd / Anaconda Prompt) |
+| | 🍎 macOS / Linux (one line) | 🪟 Windows (Command Prompt) |
 |---|---|---|
 | set a variable + run | `ADDR=0xABC python check_balance.py` | `set ADDR=0xABC`  ⏎  `python check_balance.py` |
 | clear a variable | `unset ADDR` | `set ADDR=` |
@@ -26,63 +26,76 @@ The **only** real difference is **which terminal you open** and **how you set a 
 
 | # | Step | Done when… |
 |---|------|-----------|
-| 1 | Install **Miniconda** | `conda --version` prints a version |
-| 1.5 | Install **Python** |`python -V` prints a version |
-| 2 | Create the env (**Python 3.11**) | your prompt shows `(ai_finance)` |
+| 1 | Install **Python 3.11** | `python --version` (🪟) / `python3.11 --version` (🍎🐧) prints `3.11.x` |
+| 2 | Create + activate a **venv** | your prompt shows `(ai_finance)` |
 | 3 | Install **web3** | `python -c "import web3"` gives no error |
 | 4 | Get this **repo's code** | you can `cd` into `week-01/code` |
 
-## Step 1 — Install Miniconda (one time)
+## Step 1 — Install Python 3.11 (one time)
 
-Miniconda gives every student the **same Python**, isolated from your machine — the biggest "don't crash" move. (We use **Miniconda**, the small version. Full "Anaconda" also works but is a much bigger download; either way you get the **Anaconda Prompt** on Windows.)
+We pin **Python 3.11** so everyone runs the same version (some libraries have no installer yet for 3.13/3.14 — 3.11 just works).
 
-**Download page (pick your OS):** https://www.anaconda.com/download/success → scroll to **"Miniconda Installers"**.
+**Download page:** https://www.python.org/downloads/release/python-3110/ → scroll to the **"Files"** table at the bottom.
 
 ### 🪟 Windows
 
-1. Download **"Miniconda3 Windows 64-bit"** (`.exe`).
-2. Double-click it → **Next** → **I Agree** → select **"Just Me (recommended)"** → **Next** → keep the default install location → **Next**.
-3. On **Advanced Options**, leave the defaults — **do NOT tick "Add Miniconda to my PATH"** (that's exactly why we use Anaconda Prompt instead) → **Install** → **Finish**.
-4. Open the **Start menu**, type **"Anaconda Prompt"**, open it. A black window appears with `(base)` at the start of the line — **run every command in this window** from now on.
+1. Download **"Windows installer (64-bit)"**.
+2. Double-click it. On the first screen, **tick ✅ "Add python.exe to PATH"** (bottom of the window) — this is the one box that matters → click **Install Now** → **Close**.
+3. Open **Command Prompt** (Start → type `cmd` → Enter) and verify:
+   ```bat
+   python --version      :: -> Python 3.11.x
+   ```
+   > "not recognized"? The PATH box wasn't ticked — re-run the installer, choose **Modify**, tick **"Add to environment variables"**, finish, then open a **fresh** Command Prompt.
 
 ### 🍎 macOS
 
-1. Download the installer that matches your chip: **"Miniconda3 macOS Apple Silicon"** (M1/M2/M3/M4) or **"…Intel x86"** (older Macs). Take the **`.pkg`** (graphical) one — easiest.
-   > Not sure which chip?  → Apple menu → **About This Mac**. "Apple M…" = Apple Silicon.
-2. Double-click the `.pkg` → **Continue** → **Agree** → **Install** (enter your Mac password if asked) → **Close**.
-3. Open the **Terminal** app (Cmd-Space, type "Terminal"). **Open a fresh Terminal window** so it picks up conda — you should see `(base)` at the start of the line.
+1. Download **"macOS 64-bit universal2 installer"** (the `.pkg`).
+2. Double-click → **Continue** → **Agree** → **Install** (enter your Mac password if asked) → **Close**.
+3. Open the **Terminal** app (Cmd-Space, type "Terminal") and verify:
+   ```bash
+   python3.11 --version      # -> Python 3.11.x
+   ```
 
 ### 🐧 Linux
 
 ```bash
-bash ~/Downloads/Miniconda3-latest-Linux-x86_64.sh
-# press Enter / type "yes" through the license; accept the default location; answer "yes" to run conda init
+sudo apt update && sudo apt install -y python3.11 python3.11-venv
+python3.11 --version
 ```
-Then close and reopen the terminal.
 
-### Verify (all OSes)
+## Step 2 — Create + activate the course environment (venv)
+
+A **venv** is a private Python folder for this course — installs stay isolated from the rest of your machine. We name it `ai_finance`.
+
+**Run this from the folder where you'll keep the course** (e.g. your home folder or Documents).
 
 ```bash
-conda --version
+# 🍎 macOS / 🐧 Linux
+python3.11 -m venv ai_finance
+source ai_finance/bin/activate
+python --version            # -> Python 3.11.x
+```
+```bat
+:: 🪟 Windows (Command Prompt)
+py -3.11 -m venv ai_finance
+ai_finance\Scripts\activate
+python --version
 ```
 
-> Prints e.g. `conda 24.x` → Step 1 done.
-> 🪟 "not recognized" → make sure you opened **Anaconda Prompt** (not PowerShell/CMD), or reinstall and confirm it finished.
-> 🍎🐧 "command not found" → **fully quit and reopen** the terminal once. Still missing on macOS? run `source ~/miniconda3/bin/activate` then `conda init zsh`, and reopen Terminal.
+> Prompt must now show **`(ai_finance)`** at the start of the line.
+> **Every new terminal: activate first** — `source ai_finance/bin/activate` (🍎🐧) / `ai_finance\Scripts\activate` (🪟). No `(ai_finance)` = wrong environment.
 
-## Step 1.5 - Install Python (one time)
-**Download page (pick your OS):** https://www.python.org/downloads/release/python-3110/ **
+<details>
+<summary><b>Already have conda? (optional alternative)</b></summary>
 
-## Step 2 — Create the course environment
+If you already use Anaconda/Miniconda and prefer it, you can skip the venv and use a conda env instead — everything downstream is identical (it also shows `(ai_finance)`):
 
 ```bash
 conda create -n ai_finance python=3.11 -y
 conda activate ai_finance
-python --version      # -> Python 3.11.x
 ```
-
-> Prompt must show **`(ai_finance)`**. **Every new terminal: run `conda activate ai_finance` first.**
-> Why 3.11: some libraries have no installer yet for 3.13/3.14 — 3.11 just works.
+You do **not** need conda for this course; the venv above is the default path.
+</details>
 
 ## Step 3 — Install the library
 
@@ -193,10 +206,12 @@ python weeks/week-01/code/reclaim.py group-keys.txt      # sweep test ETH back t
 
 | Symptom | Cause → fix |
 |---------|-------------|
-| `conda: command not found` / "not recognized" | 🪟 use **Anaconda Prompt**; 🍎🐧 close & reopen the terminal. |
-| `externally-managed-environment` / pip refuses | Forgot `conda activate ai_finance` — prompt must show `(ai_finance)`. |
-| `ModuleNotFoundError: web3` | Wrong Python → `conda activate ai_finance`, redo Part A Step 3. |
-| package won't install (mentions 3.13/3.14) | Wrong Python → recreate env with `python=3.11` (Part A Step 2). |
+| `python: command not found` / "not recognized" | 🪟 re-run the installer and tick **"Add python.exe to PATH"**, open a fresh Command Prompt; 🍎🐧 use `python3.11`. |
+| prompt has no `(ai_finance)` | You didn't activate → `source ai_finance/bin/activate` (🍎🐧) / `ai_finance\Scripts\activate` (🪟). |
+| `externally-managed-environment` / pip refuses | Not in the venv — activate it first; prompt must show `(ai_finance)`. |
+| `ModuleNotFoundError: web3` | Wrong Python → activate the venv, redo Part A Step 3. |
+| package won't install (mentions 3.13/3.14) | Wrong Python → recreate the venv with **3.11** (Part A Step 2). |
+| `py -3.11` not found (🪟) | Python 3.11 not installed or PATH box unticked → redo Part A Step 1. |
 | `'RPC' is not recognized...` (🪟) | You used the Mac one-line style. On Windows use `set VAR=value` on its own line. |
 | address error `Got: ' 0x..'` (🪟) | Space after `=` in `set`. Write `set ADDR=0x..` (no space). |
 | `Network: ... chainId 84532` when you wanted mainnet | Leftover `RPC` → `unset RPC` / `set RPC=`. |
