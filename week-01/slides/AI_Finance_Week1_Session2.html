@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Finance · Week 1 · Session 2</title>
+<style>
+  :root{
+    --bg:#0f1420; --bg2:#131a2a; --card:#161d2e; --ink:#eef2f8; --muted:#9aa7bd;
+    --line:#293349; --accent:#5eead4; --accent2:#818cf8; --warn:#fbbf24; --bad:#f87171; --ok:#4ade80;
+    --chip:#1d2740;
+  }
+  :root[data-theme="light"]{
+    --bg:#eef1f6; --bg2:#e7ebf3; --card:#ffffff; --ink:#141a26; --muted:#5b6577; --line:#dde3ec;
+    --accent:#0d9488; --accent2:#6366f1; --warn:#b45309; --bad:#dc2626; --ok:#16a34a; --chip:#eef2f8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:radial-gradient(1200px 700px at 78% -10%,var(--bg2),var(--bg));color:var(--ink);
+    font:16px/1.55 -apple-system,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB",sans-serif;overflow:hidden}
+  .deck{height:100vh;display:flex;align-items:center;justify-content:center;padding:3vh 3vw}
+  .slide{width:min(1180px,94vw);height:min(700px,92vh);background:linear-gradient(180deg,var(--card),color-mix(in srgb,var(--card) 90%,var(--bg)));
+    border:1px solid var(--line);border-radius:22px;box-shadow:0 30px 80px rgba(0,0,0,.35);
+    padding:38px 54px 56px;position:relative;display:none;flex-direction:column;overflow:hidden}
+  .slide.on{display:flex;animation:in .35s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .slide::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;
+    background:linear-gradient(180deg,var(--accent),var(--accent2))}
+  .eyebrow{font-size:12.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  h1{font-size:50px;line-height:1.08;font-weight:850;letter-spacing:-.01em}
+  h2{font-size:30px;line-height:1.15;font-weight:820;letter-spacing:-.01em}
+  .lead{font-size:18px;color:var(--muted);margin-top:12px;max-width:60ch}
+  .rule{height:3px;width:56px;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;margin:12px 0 14px}
+  .fig{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;margin-top:6px}
+  .fig svg{width:100%;max-height:60vh}
+  .cap{font-size:17px;color:var(--ink);text-align:center;margin-top:6px}
+  .cap b{color:var(--accent2)}
+  .code{background:var(--chip);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-top:12px;
+    font:15px/1.6 ui-monospace,Menlo,monospace;color:var(--ink)}
+  .code .c{color:var(--muted)} .code .g{color:var(--accent)} .code .y{color:var(--warn)}
+  code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+  .callout{margin-top:14px;background:color-mix(in srgb,var(--accent) 12%,transparent);
+    border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);border-radius:12px;padding:12px 16px;font-size:16px;line-height:1.5}
+  .callout.warn{background:color-mix(in srgb,var(--warn) 14%,transparent);border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
+  .callout b{color:var(--ink)}
+  ul{list-style:none;display:flex;flex-direction:column;gap:12px;margin-top:8px}
+  li{position:relative;padding-left:28px;font-size:19px;line-height:1.4}
+  li::before{content:"";position:absolute;left:2px;top:.55em;width:10px;height:10px;border-radius:3px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));transform:rotate(45deg)}
+  li b{color:var(--ink);font-weight:800}
+  .title-slide{justify-content:center}.title-slide h1{font-size:58px}
+  .title-slide .meta{margin-top:26px;display:flex;gap:24px;flex-wrap:wrap;color:var(--muted);font-size:16px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;margin-right:6px}
+  .divider{justify-content:center}.divider .num{font-size:20px;color:var(--accent);font-weight:800;letter-spacing:.1em}
+  .divider h1{font-size:52px;margin-top:8px}
+  .foot{position:absolute;left:54px;right:54px;bottom:18px;display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+  .foot .fname{font-weight:700}
+  .progress{position:fixed;left:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s;z-index:5}
+  .nav{position:fixed;right:18px;bottom:16px;display:flex;gap:8px;z-index:6}
+  .nav button,.topbtn{font:inherit;font-weight:700;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer}
+  .nav button:hover,.topbtn:hover{border-color:var(--accent)}
+  .counter{position:fixed;right:18px;top:16px;font-size:13px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;z-index:6}
+  .topbtns{position:fixed;left:18px;top:14px;display:flex;gap:8px;z-index:6}.topbtn{padding:6px 10px;font-size:13px}
+  .hint{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);font-size:12px;color:var(--muted);z-index:4;opacity:.7}
+  @media(max-width:640px){.slide{padding:30px 26px 52px}h1{font-size:34px}.title-slide h1{font-size:36px}h2{font-size:23px}li{font-size:17px}}
+</style>
+</head>
+<body>
+<div class="progress" id="prog"></div>
+<div class="counter" id="counter">1 / 1</div>
+<div class="topbtns"><button class="topbtn" id="themeBtn">◑ Theme</button><button class="topbtn" id="fsBtn">⛶ Full</button></div>
+<div class="nav"><button id="prev">◀</button><button id="next">▶</button></div>
+<div class="hint">← → / Space · F fullscreen · O jump</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · Title -->
+  <section class="slide title-slide">
+    <div class="eyebrow">MB / CSE 599 · AI Finance</div>
+    <h1>Make Your Own Coin</h1>
+    <p class="lead">Week 1 · Session 2 — issue a token, move it around, and see it on the chain. Everything by code.</p>
+    <div class="meta"><span><i class="dot"></i>2 hours</span><span><i class="dot"></i>local chain · never real money</span><span><i class="dot"></i>Mingjing Zhang</span></div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span>Session 2</span></div>
+  </section>
+
+  <!-- 2 · Bridge -->
+  <section class="slide">
+    <div class="eyebrow">From last time</div>
+    <h2>Last time you sent <em>ETH</em>. Today you make your <em>own</em> coin.</h2>
+    <div class="fig">
+      <svg viewBox="0 0 720 220" font-family="ui-monospace,Menlo,monospace">
+        <!-- last time -->
+        <text x="60" y="40" fill="var(--muted)" font-size="14">Session 1</text>
+        <circle cx="90" cy="110" r="30" fill="var(--chip)" stroke="var(--accent2)" stroke-width="2"/><text x="90" y="116" font-size="22" text-anchor="middle">👤</text>
+        <line x1="128" y1="110" x2="238" y2="110" stroke="var(--accent2)" stroke-width="2.5" marker-end="url(#a1)"/>
+        <text x="183" y="98" fill="var(--accent2)" font-size="14" text-anchor="middle">send ETH</text>
+        <circle cx="270" cy="110" r="30" fill="var(--chip)" stroke="var(--accent2)" stroke-width="2"/><text x="270" y="116" font-size="22" text-anchor="middle">👤</text>
+        <line x1="340" y1="110" x2="410" y2="110" stroke="var(--line)" stroke-width="2" stroke-dasharray="5 5"/>
+        <!-- today -->
+        <text x="440" y="40" fill="var(--accent)" font-size="14">Today</text>
+        <circle cx="470" cy="110" r="30" fill="var(--chip)" stroke="var(--accent)" stroke-width="2"/><text x="470" y="116" font-size="22" text-anchor="middle">👤</text>
+        <line x1="508" y1="110" x2="600" y2="110" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#a2)"/>
+        <text x="554" y="98" fill="var(--accent)" font-size="14" text-anchor="middle">issue</text>
+        <rect x="602" y="80" width="70" height="60" rx="14" fill="var(--chip)" stroke="var(--accent)" stroke-width="2"/><text x="637" y="116" font-size="24" text-anchor="middle">🪙</text>
+        <defs>
+          <marker id="a1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--accent2)"/></marker>
+          <marker id="a2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--accent)"/></marker>
+        </defs>
+      </svg>
+    </div>
+    <div class="cap">ETH is the chain's built-in coin. Now: <b>your own token</b> — a stablecoin, a game coin, "Aaron Coin".</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 3 · Mental model: token = table in a contract -->
+  <section class="slide">
+    <div class="eyebrow">The one idea to keep</div>
+    <h2>A token = a <em>table inside a contract</em></h2>
+    <div class="fig">
+      <svg viewBox="0 0 560 260" font-family="ui-monospace,Menlo,monospace">
+        <rect x="40" y="24" width="480" height="212" rx="18" fill="var(--chip)" stroke="var(--accent)" stroke-width="2"/>
+        <text x="64" y="56" fill="var(--accent)" font-size="16" font-weight="700">🪙 AARON — a smart contract</text>
+        <text x="64" y="86" fill="var(--muted)" font-size="14">balanceOf (a table):</text>
+        <line x1="64" y1="98" x2="496" y2="98" stroke="var(--line)"/>
+        <text x="80" y="128" fill="var(--ink)" font-size="16">You</text><text x="470" y="128" fill="var(--ink)" font-size="16" text-anchor="end" font-weight="700">1,000,000</text>
+        <line x1="64" y1="142" x2="496" y2="142" stroke="var(--line)" stroke-dasharray="3 3"/>
+        <text x="80" y="170" fill="var(--ink)" font-size="16">Bob</text><text x="470" y="170" fill="var(--ink)" font-size="16" text-anchor="end" font-weight="700">0</text>
+        <line x1="64" y1="184" x2="496" y2="184" stroke="var(--line)" stroke-dasharray="3 3"/>
+        <text x="80" y="212" fill="var(--ink)" font-size="16">Carol</text><text x="470" y="212" fill="var(--ink)" font-size="16" text-anchor="end" font-weight="700">0</text>
+      </svg>
+    </div>
+    <div class="cap">Not the chain's coin — just <b>a list of "who owns how much"</b> living in one contract. (USDC is exactly this.)</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 4 · issue = deploy + mint -->
+  <section class="slide">
+    <div class="eyebrow">Part 1 · issue_asset.py</div>
+    <h2>Issue = put the contract on-chain + fill the first row</h2>
+    <div class="fig">
+      <svg viewBox="0 0 720 200" font-family="ui-monospace,Menlo,monospace">
+        <rect x="30" y="60" width="150" height="80" rx="14" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="6 5"/>
+        <text x="105" y="105" fill="var(--muted)" font-size="14" text-anchor="middle">empty</text>
+        <line x1="188" y1="100" x2="270" y2="100" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#a3)"/>
+        <text x="229" y="88" fill="var(--accent)" font-size="13" text-anchor="middle">deploy</text>
+        <rect x="278" y="52" width="170" height="96" rx="14" fill="var(--chip)" stroke="var(--accent)" stroke-width="2"/>
+        <text x="363" y="86" fill="var(--accent)" font-size="14" text-anchor="middle">🪙 AARON</text>
+        <text x="363" y="112" fill="var(--muted)" font-size="12" text-anchor="middle">contract live</text>
+        <line x1="456" y1="100" x2="538" y2="100" stroke="var(--accent2)" stroke-width="2.5" marker-end="url(#a4)"/>
+        <text x="497" y="88" fill="var(--accent2)" font-size="13" text-anchor="middle">mint</text>
+        <rect x="546" y="52" width="150" height="96" rx="14" fill="var(--chip)" stroke="var(--accent2)" stroke-width="2"/>
+        <text x="621" y="88" fill="var(--ink)" font-size="13" text-anchor="middle">You:</text>
+        <text x="621" y="112" fill="var(--ink)" font-size="16" text-anchor="middle" font-weight="700">1,000,000</text>
+        <defs>
+          <marker id="a3" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--accent)"/></marker>
+          <marker id="a4" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--accent2)"/></marker>
+        </defs>
+      </svg>
+    </div>
+    <div class="code">NAME=<span class="g">"Aaron Coin"</span> SYMBOL=<span class="g">AARON</span> SUPPLY=<span class="y">1000000</span> python issue_asset.py</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 5 · transfer = two rows change -->
+  <section class="slide">
+    <div class="eyebrow">Part 2 · transfer_token.py</div>
+    <h2>Transfer = two rows in the table change</h2>
+    <div class="fig">
+      <svg viewBox="0 0 680 250" font-family="ui-monospace,Menlo,monospace">
+        <rect x="26" y="26" width="200" height="86" rx="12" fill="var(--chip)" stroke="var(--accent2)" stroke-width="1.5"/>
+        <text x="42" y="50" fill="var(--accent2)" font-size="13" font-weight="700">👤 You</text>
+        <text x="42" y="94" fill="var(--ink)" font-size="16" font-weight="700">1,000,000 <tspan fill="var(--muted)">→</tspan> 991,112</text>
+        <rect x="454" y="26" width="200" height="86" rx="12" fill="var(--chip)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="470" y="50" fill="var(--accent)" font-size="13" font-weight="700">🧑 Classmate</text>
+        <text x="470" y="94" fill="var(--ink)" font-size="16" font-weight="700">0 <tspan fill="var(--muted)">→</tspan> 8,888</text>
+        <line x1="232" y1="69" x2="446" y2="69" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#a5)"/>
+        <text x="339" y="57" fill="var(--accent)" font-size="14" font-weight="700" text-anchor="middle">transfer 8,888</text>
+        <rect x="150" y="164" width="380" height="58" rx="12" fill="none" stroke="var(--warn)" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="340" y="188" fill="var(--warn)" font-size="13" font-weight="700" text-anchor="middle">the AARON contract · one table</text>
+        <text x="340" y="209" fill="var(--muted)" font-size="12" text-anchor="middle">both numbers are just two rows in here</text>
+        <line x1="150" y1="112" x2="220" y2="164" stroke="var(--line)" stroke-dasharray="4 4"/>
+        <line x1="530" y1="112" x2="460" y2="164" stroke="var(--line)" stroke-dasharray="4 4"/>
+        <defs><marker id="a5" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="var(--accent)"/></marker></defs>
+      </svg>
+    </div>
+    <div class="code">TOKEN=0x… TO=0xClassmate AMOUNT=<span class="y">8888</span> python transfer_token.py</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 6 · KEY: token transfer != ETH transfer -->
+  <section class="slide">
+    <div class="eyebrow">The key picture · keep this</div>
+    <h2>Moving a token is <em>not</em> moving ETH</h2>
+    <div class="fig">
+      <svg viewBox="0 0 720 250" font-family="ui-monospace,Menlo,monospace">
+        <!-- ETH -->
+        <text x="30" y="30" fill="var(--accent2)" font-size="15" font-weight="700">Send ETH</text>
+        <circle cx="70" cy="120" r="28" fill="var(--chip)" stroke="var(--accent2)" stroke-width="2"/><text x="70" y="126" font-size="18" text-anchor="middle">👤</text>
+        <line x1="102" y1="120" x2="250" y2="120" stroke="var(--accent2)" stroke-width="2.5" marker-end="url(#a6)"/>
+        <text x="176" y="108" fill="var(--accent2)" font-size="13" text-anchor="middle">0.2 ETH, straight</text>
+        <circle cx="282" cy="120" r="28" fill="var(--chip)" stroke="var(--accent2)" stroke-width="2"/><text x="282" y="126" font-size="18" text-anchor="middle">👤</text>
+        <text x="176" y="170" fill="var(--muted)" font-size="12.5" text-anchor="middle">the chain's own ledger moves</text>
+        <!-- divider -->
+        <line x1="360" y1="20" x2="360" y2="230" stroke="var(--line)"/>
+        <!-- token -->
+        <text x="392" y="30" fill="var(--accent)" font-size="15" font-weight="700">Send a token</text>
+        <circle cx="430" cy="120" r="28" fill="var(--chip)" stroke="var(--accent)" stroke-width="2"/><text x="430" y="126" font-size="18" text-anchor="middle">👤</text>
+        <line x1="462" y1="120" x2="524" y2="120" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#a7)"/>
+        <text x="493" y="108" fill="var(--accent)" font-size="12" text-anchor="middle">poke</text>
+        <rect x="532" y="86" width="160" height="68" rx="12" fill="var(--chip)" stroke="var(--accent)" stroke-width="2"/>
+        <text x="612" y="112" fill="var(--ink)" font-size="12.5" text-anchor="middle">contract table:</text>
+        <text x="612" y="134" fill="var(--ink)" font-size="12.5" text-anchor="middle">You − / Bob +</text>
+        <text x="612" y="182" fill="var(--bad)" font-size="12.5" text-anchor="middle" font-weight="700">ETH does NOT move</text>
+        <defs>
+          <marker id="a6" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--accent2)"/></marker>
+          <marker id="a7" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--accent)"/></marker>
+        </defs>
+      </svg>
+    </div>
+    <div class="cap">ETH → goes person-to-person on the chain's ledger. Token → you <b>poke the contract</b>, it edits two rows. <b>No ETH moves.</b></div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 7 · read vs write, light -->
+  <section class="slide">
+    <div class="eyebrow">Two things you do to a contract</div>
+    <h2>Read (free) &nbsp;·&nbsp; Write (a transaction)</h2>
+    <div class="fig">
+      <svg viewBox="0 0 700 210" font-family="ui-monospace,Menlo,monospace">
+        <rect x="30" y="30" width="310" height="150" rx="16" fill="var(--chip)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="55" y="66" fill="var(--accent)" font-size="17" font-weight="700">👀 READ</text>
+        <text x="55" y="100" fill="var(--ink)" font-size="15">balanceOf(you)<tspan fill="var(--accent2)">.call()</tspan></text>
+        <text x="55" y="132" fill="var(--muted)" font-size="14">ask only · free · changes nothing</text>
+        <rect x="360" y="30" width="310" height="150" rx="16" fill="var(--chip)" stroke="var(--warn)" stroke-width="1.5"/>
+        <text x="385" y="66" fill="var(--warn)" font-size="17" font-weight="700">✍️ WRITE</text>
+        <text x="385" y="100" fill="var(--ink)" font-size="15">transfer(...) → sign → send</text>
+        <text x="385" y="132" fill="var(--muted)" font-size="14">a transaction · costs gas · moves it</text>
+      </svg>
+    </div>
+    <div class="callout">Same idea all course long: <b>read = ask, write = a signed transaction.</b> (AMM: read price vs. swap. Lending: read status vs. borrow.)</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 8 · UI: on the explorer -->
+  <section class="slide">
+    <div class="eyebrow">Now the UI · same transfer on a block explorer</div>
+    <h2>Proof: the token moved, <em>0 ETH sent</em></h2>
+    <div class="fig">
+      <svg viewBox="0 0 640 240" font-family="ui-monospace,Menlo,monospace">
+        <rect x="40" y="20" width="560" height="200" rx="14" fill="var(--chip)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="62" y="50" fill="var(--muted)" font-size="13">Transaction · BaseScan</text>
+        <line x1="62" y1="60" x2="578" y2="60" stroke="var(--line)"/>
+        <text x="62" y="90" fill="var(--muted)" font-size="14">To</text><text x="578" y="90" fill="var(--ink)" font-size="14" text-anchor="end" font-weight="700">the AARON contract (not a person)</text>
+        <text x="62" y="122" fill="var(--muted)" font-size="14">Value</text><text x="578" y="122" fill="var(--bad)" font-size="15" text-anchor="end" font-weight="700">0 ETH</text>
+        <text x="62" y="154" fill="var(--muted)" font-size="14">Token Transfer</text><text x="578" y="154" fill="var(--accent2)" font-size="14" text-anchor="end" font-weight="700">You → Classmate · 8,888 AARON</text>
+        <text x="62" y="186" fill="var(--muted)" font-size="14">Holders</text><text x="578" y="186" fill="var(--ink)" font-size="14" text-anchor="end" font-weight="700">2</text>
+      </svg>
+    </div>
+    <div class="cap"><b>Code and UI = two doors to the same fact.</b> To = a contract, Value = 0; the 8,888 shows up as a token transfer, not as ETH.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 9 · cliffhanger AMM -->
+  <section class="slide">
+    <div class="eyebrow">The cliffhanger</div>
+    <h2>You have a coin… but <em>no one to trade with</em></h2>
+    <div class="fig">
+      <svg viewBox="0 0 640 200" font-family="ui-monospace,Menlo,monospace">
+        <rect x="40" y="70" width="160" height="70" rx="14" fill="var(--chip)" stroke="var(--accent)" stroke-width="2"/>
+        <text x="120" y="102" font-size="20" text-anchor="middle">🪙</text><text x="120" y="126" fill="var(--muted)" font-size="12" text-anchor="middle">you: lots of AARON</text>
+        <line x1="210" y1="105" x2="320" y2="105" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 5"/>
+        <text x="265" y="94" fill="var(--muted)" font-size="13" text-anchor="middle">swap for USDC?</text>
+        <text x="360" y="100" fill="var(--bad)" font-size="16" font-weight="700">🤷 nobody's</text>
+        <text x="360" y="122" fill="var(--bad)" font-size="16" font-weight="700">   waiting</text>
+        <line x1="500" y1="105" x2="560" y2="105" stroke="var(--accent2)" stroke-width="2.5" marker-end="url(#a8)"/>
+        <text x="595" y="110" fill="var(--accent2)" font-size="24" text-anchor="middle">🏦</text>
+        <defs><marker id="a8" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--accent2)"/></marker></defs>
+      </svg>
+    </div>
+    <div class="cap">A transfer is just a <b>gift</b> — no price, no counterparty. <b>Next week: build a machine that always trades with you — the AMM.</b></div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 10 · hands-on -->
+  <section class="slide">
+    <div class="eyebrow">Hands-on · everyone</div>
+    <h2>Issue a coin with your own name → transfer → find it</h2>
+    <div class="fig" style="flex:0 0 auto;margin:10px 0">
+      <svg viewBox="0 0 700 96" font-family="ui-monospace,Menlo,monospace">
+        <rect x="10" y="20" width="200" height="56" rx="12" fill="var(--chip)" stroke="var(--accent)" stroke-width="1.5"/><text x="110" y="46" fill="var(--accent)" font-size="14" text-anchor="middle" font-weight="700">① issue</text><text x="110" y="65" fill="var(--muted)" font-size="11.5" text-anchor="middle">deploy + mint</text>
+        <text x="228" y="54" fill="var(--muted)" font-size="20">→</text>
+        <rect x="250" y="20" width="200" height="56" rx="12" fill="var(--chip)" stroke="var(--accent2)" stroke-width="1.5"/><text x="350" y="46" fill="var(--accent2)" font-size="14" text-anchor="middle" font-weight="700">② transfer</text><text x="350" y="65" fill="var(--muted)" font-size="11.5" text-anchor="middle">to a classmate</text>
+        <text x="468" y="54" fill="var(--muted)" font-size="20">→</text>
+        <rect x="490" y="20" width="200" height="56" rx="12" fill="var(--chip)" stroke="var(--warn)" stroke-width="1.5"/><text x="590" y="46" fill="var(--warn)" font-size="14" text-anchor="middle" font-weight="700">③ verify</text><text x="590" y="65" fill="var(--muted)" font-size="11.5" text-anchor="middle">on the explorer</text>
+      </svg>
+    </div>
+    <div class="code"><span class="c"># Terminal A:</span> anvil        <span class="c"># leave running</span>
+<span class="c"># Terminal B:</span> NAME=<span class="g">"Your Coin"</span> SYMBOL=<span class="g">YOU</span> python issue_asset.py   <span class="c"># copy 0x…</span>
+             TOKEN=0x… TO=0xClassmate AMOUNT=<span class="y">250</span> python transfer_token.py</div>
+    <div class="callout warn"><b>Same anvil session</b> throughout (restart = chain wipes, just re-issue). Instant, free, no faucet.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span></span></div>
+  </section>
+
+  <!-- 11 · takeaways + next -->
+  <section class="slide">
+    <div class="eyebrow">Keep these three</div>
+    <h2>What you can now do</h2>
+    <div class="rule"></div>
+    <ul>
+      <li>✅ <b>Issue</b> your own token (a table in a contract) and <b>read</b> balances — free.</li>
+      <li>✅ <b>Transfer</b> it: the contract edits two rows. <b>Moving a token ≠ moving ETH.</b></li>
+      <li>✅ See the same fact in <b>code and on the explorer</b>.</li>
+    </ul>
+    <div class="callout">Next → <b>Week 2: build your own Uniswap</b>, so your coin finally has a market. <span class="mono">x·y=k</span>.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 1</span><span>Session 2 · end</span></div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  const slides=Array.from(document.querySelectorAll('.slide'));const N=slides.length;let i=0;
+  const prog=document.getElementById('prog'),counter=document.getElementById('counter');
+  function show(n){i=Math.max(0,Math.min(N-1,n));slides.forEach((s,k)=>s.classList.toggle('on',k===i));
+    prog.style.width=((i+1)/N*100)+'%';counter.textContent=(i+1)+' / '+N;try{location.hash='#'+(i+1);}catch(e){}}
+  function nextS(){show(i+1);}function prevS(){show(i-1);}
+  document.getElementById('next').onclick=nextS;document.getElementById('prev').onclick=prevS;
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();nextS();}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prevS();}
+    else if(e.key==='Home'){show(0);}else if(e.key==='End'){show(N-1);}
+    else if(e.key==='f'||e.key==='F'){toggleFs();}else if(e.key==='o'||e.key==='O'){jump();}});
+  document.getElementById('deck').addEventListener('click',e=>{if(e.target.closest('button,a,input'))return;
+    const x=e.clientX/window.innerWidth;if(x>0.62)nextS();else if(x<0.38)prevS();});
+  function jump(){const n=prompt('Go to slide? (1–'+N+')',(i+1));if(n){const k=parseInt(n,10);if(!isNaN(k))show(k-1);}}
+  function toggleFs(){if(!document.fullscreenElement){document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();}else{document.exitFullscreen&&document.exitFullscreen();}}
+  document.getElementById('fsBtn').onclick=toggleFs;
+  document.getElementById('themeBtn').onclick=()=>{const r=document.documentElement;r.setAttribute('data-theme',r.getAttribute('data-theme')==='light'?'dark':'light');};
+  const start=parseInt((location.hash||'#1').slice(1),10);show(isNaN(start)?0:start-1);
+})();
+</script>
+</body>
+</html>
