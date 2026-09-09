@@ -81,15 +81,17 @@ def main():
     rcpt = send(w3, me, PRIVATE_KEY, Token.constructor(NAME, SYMBOL), gas=2_000_000)
     addr = rcpt.contractAddress
     token = w3.eth.contract(address=addr, abi=ART["abi"])
-    print(f"      deployed at: {addr}  (block #{rcpt.blockNumber})\n")
+    dec = token.functions.decimals().call()          # 代币小数位(这份=6,和 USDC 一致)
+    unit = 10 ** dec
+    print(f"      deployed at: {addr}  (block #{rcpt.blockNumber}, decimals={dec})\n")
 
     print(f"  (2) minting {SUPPLY:,} {SYMBOL} to the issuer ...")
-    send(w3, me, PRIVATE_KEY, token.functions.mint(me, SUPPLY * 10**18), gas=200_000)
+    send(w3, me, PRIVATE_KEY, token.functions.mint(me, SUPPLY * unit), gas=200_000)
     print(f"      done.\n")
 
     print(f"  (3) read back (view, free):")
-    print(f"      totalSupply = {token.functions.totalSupply().call() / 10**18:,.0f} {SYMBOL}")
-    print(f"      my balance  = {token.functions.balanceOf(me).call() / 10**18:,.0f} {SYMBOL}\n")
+    print(f"      totalSupply = {token.functions.totalSupply().call() / unit:,.0f} {SYMBOL}")
+    print(f"      my balance  = {token.functions.balanceOf(me).call() / unit:,.0f} {SYMBOL}\n")
 
     print("=" * 60)
     print("  IT'S LIVE. Open these in class:")

@@ -59,15 +59,15 @@ AMOUNT = int(os.getenv("AMOUNT", "250").strip())
 ABI = json.loads((Path(__file__).parent / "erc20_artifact.json").read_text())["abi"]
 
 
-def read_balance(token, who, sym):
+def read_balance(token, who, unit):
     """READ = a view call: .call() asks the node, returns a value, sends NO transaction."""
     raw = token.functions.balanceOf(who).call()      # <-- the read pattern
-    return raw / 10**18
+    return raw / unit
 
 
-def transfer(w3, token, frm, pk, to, amount):
+def transfer(w3, token, frm, pk, to, amount, unit):
     """WRITE = a state-changing call: assemble -> sign -> broadcast -> wait for the receipt."""
-    tx = token.functions.transfer(to, amount * 10**18).build_transaction({   # <-- the write pattern
+    tx = token.functions.transfer(to, amount * unit).build_transaction({   # <-- the write pattern
         "from": frm,
         "nonce": w3.eth.get_transaction_count(frm),
         "gas": 200_000,
@@ -94,22 +94,23 @@ def main():
     to = Web3.to_checksum_address(TO)
     token = w3.eth.contract(address=Web3.to_checksum_address(TOKEN), abi=ABI)
     sym = token.functions.symbol().call()
+    unit = 10 ** token.functions.decimals().call()   # 问代币小数位;转 USDC(6)、转你自己的币(6/18)都自适应
     print(f"Me   {me}   [签名: {KEY_SRC}]\nThem {to}\nToken {TOKEN} ({sym})\n")
 
     # (1) READ before
     print("(1) READ before (view -- free):")
-    print(f"    me   = {read_balance(token, me, sym):,.0f} {sym}")
-    print(f"    them = {read_balance(token, to, sym):,.0f} {sym}\n")
+    print(f"    me   = {read_balance(token, me, unit):,.0f} {sym}")
+    print(f"    them = {read_balance(token, to, unit):,.0f} {sym}\n")
 
     # (2) WRITE: transfer
     print(f"(2) WRITE: transfer {AMOUNT} {sym} to them (sends a tx, costs gas) ...")
-    rcpt = transfer(w3, token, me, PRIVATE_KEY, to, AMOUNT)
+    rcpt = transfer(w3, token, me, PRIVATE_KEY, to, AMOUNT, unit)
     print(f"    mined in block #{rcpt.blockNumber}, status {'success' if rcpt.status == 1 else 'FAILED'}\n")
 
     # (3) READ after
     print("(3) READ after (view -- free):")
-    print(f"    me   = {read_balance(token, me, sym):,.0f} {sym}")
-    print(f"    them = {read_balance(token, to, sym):,.0f} {sym}")
+    print(f"    me   = {read_balance(token, me, unit):,.0f} {sym}")
+    print(f"    them = {read_balance(token, to, unit):,.0f} {sym}")
 
     print("\nTakeaways:")
     print("  - READ  = .call()            -> ask only, free, no transaction (view).")

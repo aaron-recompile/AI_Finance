@@ -55,18 +55,20 @@ def main():
                         Token.constructor(NAME, SYMBOL), gas=2_000_000)
     token_addr = deploy_rcpt.contractAddress
     token = w3.eth.contract(address=token_addr, abi=ART["abi"])
-    print(f"    deployed at: {token_addr}")
+    dec = token.functions.decimals().call()          # 问代币它的小数位(这份=6,和 USDC 一致)
+    unit = 10 ** dec
+    print(f"    deployed at: {token_addr}  (decimals={dec})")
 
     # mint = another state-changing tx: create SUPPLY tokens into my balance
-    _send(w3, me, PRIVATE_KEY, token.functions.mint(me, SUPPLY * 10**18))
+    _send(w3, me, PRIVATE_KEY, token.functions.mint(me, SUPPLY * unit))
     print(f"    minted {SUPPLY:,} {SYMBOL} to myself\n")
 
     # ---- 2) READ: ask the contract for balances / supply (view = free, no tx) ----
     print("(2) Read the token (view -- ask only, costs nothing):")
     print(f"    name        = {token.functions.name().call()}")
     print(f"    symbol      = {token.functions.symbol().call()}")
-    print(f"    totalSupply = {token.functions.totalSupply().call() / 10**18:,.0f} {SYMBOL}")
-    print(f"    my balance  = {token.functions.balanceOf(me).call() / 10**18:,.0f} {SYMBOL}")
+    print(f"    totalSupply = {token.functions.totalSupply().call() / unit:,.0f} {SYMBOL}")
+    print(f"    my balance  = {token.functions.balanceOf(me).call() / unit:,.0f} {SYMBOL}")
 
     print("\nTakeaways:")
     print(f"  - A token = a balance table inside a contract, NOT the chain's native ETH.")
