@@ -1,18 +1,12 @@
 """
 Week 1 · Session 2 (ceremony) - ISSUE AN ASSET ON A REAL TESTNET: Base Sepolia.
 
-Same idea as issue_asset.py, but instead of a throwaway local anvil chain, this puts
-your token on the PUBLIC Base Sepolia testnet -- so it lives on-chain and anyone can
-see it on a block explorer. Costs real testnet gas, so it uses the funded teacher wallet.
+Same idea as issue_asset.py, but on the PUBLIC Base Sepolia testnet -- the token lives
+on-chain and anyone can see it on a block explorer. Costs real testnet gas, so pass a
+funded key. After deploying, it prints the BaseScan links.
 
-Difference from issue_asset.py:
-  - defaults RPC to Base Sepolia (not localhost)
-  - loads the funded teacher key from .env.faucet (FUNDER_KEY) automatically
-  - after deploying, prints the BaseScan links so you can open it in class
-
-Run (from anywhere; it finds .env.faucet at the course root):
-    python issue_asset_basesepolia.py
-Override:  NAME="Aaron Coin" SYMBOL=AARON SUPPLY=888888 python issue_asset_basesepolia.py
+Run:
+    PRIVATE_KEY=0xYOURKEY NAME="Aaron Coin" SYMBOL=AARON SUPPLY=888888 python issue_asset_basesepolia.py
 
 TESTNET ONLY -- never real money.  install:  pip install web3
 """
@@ -22,23 +16,12 @@ from pathlib import Path
 from web3 import Web3
 
 HERE = Path(__file__).resolve()
-COURSE_ROOT = HERE.parents[3]                      # code -> week-01 -> weeks -> course
-ENV_FAUCET = COURSE_ROOT / ".env.faucet"
 
-# --- load the funded teacher wallet from .env.faucet (FUNDER_KEY), unless PRIVATE_KEY is set ---
-def load_env_file(p):
-    out = {}
-    if p.exists():
-        for line in p.read_text().splitlines():
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                k, v = line.split("=", 1)
-                out[k.strip()] = v.strip()
-    return out
-
-_env = load_env_file(ENV_FAUCET)
 RPC = os.getenv("RPC", "https://base-sepolia-rpc.publicnode.com").strip()
-PRIVATE_KEY = (os.getenv("PRIVATE_KEY") or _env.get("FUNDER_KEY", "")).strip()
+# Pass a funded key with PRIVATE_KEY=0x...  Falls back to the public anvil account 0,
+# which won't work on a real chain -- so on Base Sepolia you must pass your own.
+ANVIL_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+PRIVATE_KEY = os.getenv("PRIVATE_KEY", ANVIL_KEY).strip()
 NAME = os.getenv("NAME", "Aaron Coin").strip()
 SYMBOL = os.getenv("SYMBOL", "AARON").strip()
 SUPPLY = int(os.getenv("SUPPLY", "888888").strip())
@@ -59,7 +42,9 @@ def send(w3, frm, pk, fn_call, gas):
 
 
 def main():
-    assert PRIVATE_KEY, f"No key. Put FUNDER_KEY in {ENV_FAUCET}, or pass PRIVATE_KEY=0x..."
+    if PRIVATE_KEY == ANVIL_KEY:
+        raise SystemExit("This issues on Base Sepolia -- pass a funded key:\n"
+                         "   PRIVATE_KEY=0xYOURKEY NAME=... SYMBOL=... python issue_asset_basesepolia.py")
     w3 = Web3(Web3.HTTPProvider(RPC))
     assert w3.is_connected(), f"cannot connect to {RPC}"
     chain = w3.eth.chain_id
@@ -71,7 +56,7 @@ def main():
     print("=" * 60)
     print(f"  network : Base Sepolia (chainId {chain})")
     print(f"  issuer  : {me}")
-    print(f"  balance : {bal:.6f} ETH  (funded teacher wallet)")
+    print(f"  balance : {bal:.6f} ETH")
     assert chain == 84532, f"Expected Base Sepolia (84532), got {chain}. Check RPC."
     assert bal > 0, "Issuer has 0 ETH on Base Sepolia -- can't pay gas. Fund it first."
     print()
@@ -81,7 +66,7 @@ def main():
     rcpt = send(w3, me, PRIVATE_KEY, Token.constructor(NAME, SYMBOL), gas=2_000_000)
     addr = rcpt.contractAddress
     token = w3.eth.contract(address=addr, abi=ART["abi"])
-    dec = token.functions.decimals().call()          # 代币小数位(这份=6,和 USDC 一致)
+    dec = token.functions.decimals().call()          # the token's decimals (this one = 6, like USDC)
     unit = 10 ** dec
     print(f"      deployed at: {addr}  (block #{rcpt.blockNumber}, decimals={dec})\n")
 

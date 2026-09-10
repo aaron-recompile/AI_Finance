@@ -55,7 +55,7 @@ def main():
                         Token.constructor(NAME, SYMBOL), gas=2_000_000)
     token_addr = deploy_rcpt.contractAddress
     token = w3.eth.contract(address=token_addr, abi=ART["abi"])
-    dec = token.functions.decimals().call()          # 问代币它的小数位(这份=6,和 USDC 一致)
+    dec = token.functions.decimals().call()          # the token's decimals (this one = 6, like USDC)
     unit = 10 ** dec
     print(f"    deployed at: {token_addr}  (decimals={dec})")
 
