@@ -1,41 +1,65 @@
-# Build Your Own Uniswap — Foundry 项目(第 2 周旗舰)
+# Build Your Own Uniswap — Foundry Project (Week 2 flagship)
 
-一个真能部署、真能兑换的最小 `x*y=k` AMM。对照同目录上一层的 `amm.py`(Python 直觉版)——同一套数学,这里是**链上合约**。
+A minimal `x * y = k` automated market maker (AMM) that really deploys and really
+swaps. Compare it with `amm.py` one directory up (the off-chain, pure-Python
+intuition version) — same math, but here it lives on-chain as a smart contract.
 
-## 文件
+## Files
 
-| 文件 | 是什么 |
-|------|--------|
-| `src/SimpleAMM.sol` | AMM 合约:加/撤流动性、swap、0.3% 手续费、LP 份额、`x*y=k` |
-| `src/MockERC20.sol` | 教学用最简 ERC20(可自由 mint,建池用) |
-| `test/SimpleAMM.t.sol` | 验收测试:初始价、k 不减、滑点随单量增大、LP 赚手续费 |
-| `script/DeployAMM.s.sol` | 部署到测试网 + 注入流动性 |
+| File | What it is |
+|------|------------|
+| `src/SimpleAMM.sol` | The AMM: add/remove liquidity, swap, 0.3% fee, LP shares, `x * y = k` |
+| `src/MockERC20.sol` | A minimal teaching ERC-20 (freely mintable, used to seed the pool) |
+| `test/SimpleAMM.t.sol` | Acceptance tests: initial price, `k` never decreases, slippage grows with trade size, LPs earn fees |
+| `script/DeployAMM.s.sol` | Deploy to a testnet + seed initial liquidity |
 
-## 本地跑测试(不需要联网/私钥)
+## Run the tests (no network, no private key)
 
 ```bash
 forge test -vv
 ```
-预期:5 passed。这就是你作业的验收基线。
 
-## 部署到测试网(Base Sepolia 为例)
+Expected: **5 passed**. This is the baseline your assignment must keep green.
+
+## Deploy to a testnet (Base Sepolia)
 
 ```bash
-export PRIVATE_KEY=0x你的测试网私钥   # 需有测试网 gas
-forge script script/DeployAMM.s.sol --rpc-url https://sepolia.base.org --broadcast
+export PRIVATE_KEY=0xYourTestnetKey     # an account that holds some Base Sepolia gas
+forge script script/DeployAMM.s.sol --rpc-url base-sepolia --broadcast
 ```
-输出会打印 tETH / tUSDC / AMM 三个地址,以及初始价(应 ≈ 2000e18)。
 
-## 你的作业从这里开始
+The `base-sepolia` RPC alias is defined in `foundry.toml`. The script prints the
+`tETH`, `tUSDC`, and `AMM` addresses plus the initial price (should be `≈ 2000e18`).
 
-- 主轨:补 `add/removeLiquidity` 的边界、写更多测试、把滑点跑成一张表。
-- 支轨:部署上去,用 `web3.py` 从链上兑换一次(见第 2 周 lab-exercise)。
+To also verify the source on BaseScan (so the contract gets Read/Write tabs), add
+`--verify` after setting `export BASESCAN_API_KEY=...`.
 
-> 数学吃不透就回去看 `amm.py` 和讲义的 `x*y=k` 推导。合约只是把那一行搬上链。
+## Interact
 
-## 依赖
+```bash
+export AMM=0x...                                             # the deployed pool
+cast call $AMM "price0In1()(uint256)" --rpc-url base-sepolia  # read the price (free)
+cast send $AMM "swap0For1(uint256)" 5000000000000000000 \
+     --rpc-url base-sepolia --private-key $PRIVATE_KEY        # sell 5 tETH (state change)
+cast call $AMM "price0In1()(uint256)" --rpc-url base-sepolia  # price moved
+```
 
-本项目用 forge-std。若 clone 后 `lib/forge-std` 缺失,跑一次:
+`cast call` is a free read (view); `cast send` is a real transaction that costs gas
+and changes state. Selling tETH pushes its price down along the `x * y = k` curve —
+that is slippage, live on-chain.
+
+## Assignment
+
+- **Core:** harden the add/remove-liquidity edge cases, add more tests, and turn
+  slippage-vs-trade-size into a table.
+- **Stretch:** deploy it and do one swap from code with web3.py (see the Week 2 lab).
+- If the math feels opaque, go back to `amm.py` and the `x * y = k` derivation in the
+  notes. The contract is just that one line, put on-chain.
+
+## Dependencies
+
+This project uses `forge-std`. If `lib/forge-std` is missing after cloning, run:
+
 ```bash
 forge install foundry-rs/forge-std
 ```
