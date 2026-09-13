@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Finance · Week 2 · AMM / Swap</title>
+<style>
+  :root{
+    --bg:#0f1420; --bg2:#131a2a; --card:#161d2e; --ink:#eef2f8; --muted:#9aa7bd;
+    --line:#293349; --accent:#5eead4; --accent2:#818cf8; --warn:#fbbf24; --bad:#f87171; --ok:#4ade80;
+    --chip:#1d2740;
+  }
+  :root[data-theme="light"]{
+    --bg:#eef1f6; --bg2:#e7ebf3; --card:#ffffff; --ink:#141a26; --muted:#5b6577; --line:#dde3ec;
+    --accent:#0d9488; --accent2:#6366f1; --warn:#b45309; --bad:#dc2626; --ok:#16a34a; --chip:#eef2f8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:radial-gradient(1200px 700px at 78% -10%,var(--bg2),var(--bg));color:var(--ink);
+    font:16px/1.55 -apple-system,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB",sans-serif;overflow:hidden}
+  .deck{height:100vh;display:flex;align-items:center;justify-content:center;padding:3vh 3vw}
+  .slide{width:min(1180px,94vw);height:min(700px,92vh);background:linear-gradient(180deg,var(--card),color-mix(in srgb,var(--card) 90%,var(--bg)));
+    border:1px solid var(--line);border-radius:22px;box-shadow:0 30px 80px rgba(0,0,0,.35);
+    padding:40px 56px 58px;position:relative;display:none;flex-direction:column;overflow:hidden}
+  .slide.on{display:flex;animation:in .35s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .slide::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;
+    background:linear-gradient(180deg,var(--accent),var(--accent2))}
+
+  .eyebrow{font-size:12.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  h1{font-size:50px;line-height:1.08;font-weight:850;letter-spacing:-.01em}
+  h2{font-size:29px;line-height:1.16;font-weight:820;letter-spacing:-.01em;margin-bottom:4px}
+  .lead{font-size:18px;color:var(--muted);margin-top:12px;max-width:62ch}
+  .rule{height:3px;width:60px;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;margin:14px 0 16px}
+
+  ul{list-style:none;display:flex;flex-direction:column;gap:11px;margin-top:6px}
+  li{position:relative;padding-left:30px;font-size:18.5px;line-height:1.4}
+  li::before{content:"";position:absolute;left:2px;top:.55em;width:10px;height:10px;border-radius:3px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));transform:rotate(45deg)}
+  li b{color:var(--ink);font-weight:800}
+  li .k{color:var(--accent)}
+  li small{display:block;font-size:14px;color:var(--muted);padding-left:0;margin-top:2px;line-height:1.4}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:4px}
+  .box{background:var(--chip);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .box h3{font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:9px}
+  .box.alt h3{color:var(--accent2)}
+  .box ul{gap:8px} .box li{font-size:15.5px;padding-left:22px} .box li::before{width:8px;height:8px;top:.5em}
+
+  table{border-collapse:collapse;width:100%;margin-top:8px;font-size:15.5px}
+  th,td{text-align:left;padding:8px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--accent);font-size:13px;letter-spacing:.06em;text-transform:uppercase;font-weight:800}
+  td b{font-weight:800}
+  tr td:first-child{color:var(--muted);white-space:nowrap;font-weight:700}
+
+  code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+  .code{background:var(--chip);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-top:12px;
+    font:16.5px/1.65 ui-monospace,Menlo,monospace;color:var(--ink)}
+  .code .c{color:var(--muted)} .code .g{color:var(--accent)} .code .b{color:var(--bad)} .code .y{color:var(--warn)}
+  .callout{margin-top:16px;background:color-mix(in srgb,var(--accent) 12%,transparent);
+    border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);border-radius:12px;padding:13px 17px;font-size:15.5px;line-height:1.5}
+  .callout.warn{background:color-mix(in srgb,var(--warn) 14%,transparent);border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
+  .callout.bad{background:color-mix(in srgb,var(--bad) 14%,transparent);border-color:color-mix(in srgb,var(--bad) 45%,transparent)}
+  .callout b{color:var(--ink)}
+
+  .title-slide{justify-content:center}
+  .title-slide h1{font-size:60px}
+  .title-slide .meta{margin-top:28px;display:flex;gap:26px;flex-wrap:wrap;color:var(--muted);font-size:17px}
+  .title-slide .meta span{display:flex;align-items:center;gap:8px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+
+  .divider{justify-content:center}
+  .divider .num{font-size:20px;color:var(--accent);font-weight:800;letter-spacing:.1em}
+  .divider h1{font-size:56px;margin-top:8px}
+
+  .story{justify-content:center}
+  .story h1{font-size:44px;line-height:1.12}
+  .story .big{font-size:30px;font-weight:850;color:var(--accent);margin-top:6px}
+  .stat{display:flex;gap:16px;flex-wrap:wrap;margin-top:20px}
+  .stat .s{background:var(--chip);border:1px solid var(--line);border-radius:14px;padding:16px 20px;min-width:150px}
+  .stat .s .n{font-size:30px;font-weight:850;color:var(--accent)}
+  .stat .s .l{font-size:13px;color:var(--muted);margin-top:3px}
+
+  .foot{position:absolute;left:56px;right:56px;bottom:20px;display:flex;justify-content:space-between;
+    align-items:center;font-size:13px;color:var(--muted)}
+  .foot .fname{font-weight:700}
+  .progress{position:fixed;left:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+    transition:width .3s;z-index:5}
+  .nav{position:fixed;right:18px;bottom:16px;display:flex;gap:8px;z-index:6}
+  .nav button,.topbtn{font:inherit;font-weight:700;color:var(--ink);background:var(--card);border:1px solid var(--line);
+    border-radius:10px;padding:8px 12px;cursor:pointer}
+  .nav button:hover,.topbtn:hover{border-color:var(--accent)}
+  .counter{position:fixed;right:18px;top:16px;font-size:13px;color:var(--muted);background:var(--card);
+    border:1px solid var(--line);border-radius:999px;padding:6px 12px;z-index:6}
+  .topbtns{position:fixed;left:18px;top:14px;display:flex;gap:8px;z-index:6}
+  .topbtn{padding:6px 10px;font-size:13px}
+  .hint{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);font-size:12px;color:var(--muted);z-index:4;opacity:.7}
+  @media(max-width:640px){
+    .slide{padding:34px 30px 56px} h1{font-size:34px} .title-slide h1{font-size:38px} h2{font-size:24px}
+    li{font-size:17px} .two{grid-template-columns:1fr} .foot{left:30px;right:30px}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="prog"></div>
+<div class="counter" id="counter">1 / 1</div>
+<div class="topbtns">
+  <button class="topbtn" id="themeBtn">◑ Theme</button>
+  <button class="topbtn" id="fsBtn">⛶ Full</button>
+</div>
+<div class="nav">
+  <button id="prev">◀</button>
+  <button id="next">▶</button>
+</div>
+<div class="hint">← → / Space to move · F fullscreen · O jump</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · Title -->
+  <section class="slide title-slide">
+    <div class="eyebrow">MB / CSE 599 · AI Finance</div>
+    <h1>Build Your Own Uniswap<br>Swaps with no counterparty</h1>
+    <p class="lead">Week 2 · the AMM session — trade against a pool instead of a person, with one rule: <span class="mono">x · y = k</span>.</p>
+    <div class="meta">
+      <span><i class="dot"></i> 1.5 hours</span>
+      <span><i class="dot"></i> Testnet only · never real money</span>
+      <span><i class="dot"></i> Instructor Mingjing Zhang</span>
+    </div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span>AMM · Build Your Own Uniswap</span></div>
+  </section>
+
+  <!-- 2 · Story part 1 -->
+  <section class="slide story">
+    <div class="eyebrow">Before we start · a true story</div>
+    <h1>In 2017, a mechanical engineer<br>got <em>laid off</em> from his first job.</h1>
+    <p class="lead">Hayden Adams — fired from Siemens. A friend (an Ethereum researcher) told him: "Being laid off is the best thing that happened to you. Come learn Ethereum."</p>
+    <ul style="margin-top:16px">
+      <li>He had <b>never written Solidity</b>. He learned to code from scratch.</li>
+      <li>His inspiration was a <b>blog post by Vitalik</b> sketching an "automated market maker."</li>
+      <li>The entire core idea was <b>one equation</b>. He spent ~a year turning it into a working contract.</li>
+    </ul>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span>The story</span></div>
+  </section>
+
+  <!-- 3 · Story part 2 payoff -->
+  <section class="slide story">
+    <div class="eyebrow">…and what it became</div>
+    <h1>November 2018: he ships <span class="mono" style="color:var(--accent)">Uniswap</span>.</h1>
+    <div class="stat">
+      <div class="s"><div class="n">1 line</div><div class="l">the whole idea — <span class="mono">x·y=k</span></div></div>
+      <div class="s"><div class="n">$1.66B</div><div class="l">Uniswap Labs valuation (2022 Series B)</div></div>
+      <div class="s"><div class="n">$T+ </div><div class="l">cumulative trading volume (trillions)</div></div>
+      <div class="s"><div class="n">Top&nbsp;DEX</div><div class="l">one of the largest exchanges in crypto</div></div>
+    </div>
+    <div class="callout"><b>His exact net worth is private</b> — but from unemployed engineer to founder of a protocol valued in the billions, on an idea that fits on one line. <b>That one line is what you're about to write today.</b></div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span>The story</span></div>
+  </section>
+
+  <!-- 4 · Hook from Session 1 -->
+  <section class="slide">
+    <div class="eyebrow">Where we left off · Session 1's open question</div>
+    <h2>You can transfer — but <em>no one trades with you</em></h2>
+    <div class="rule"></div>
+    <ul>
+      <li>Last session you could hold, send, and even call contracts to move assets.</li>
+      <li>But <b>"transfer" isn't "trade."</b> You want to swap ETH for USDC — <b>who's the counterparty?</b> Nobody is waiting.</li>
+      <li>A traditional exchange needs a <b>buyer to match every seller</b> (an order book). On-chain, at 3am, for a tiny trade — often <b>no one's there</b>.</li>
+    </ul>
+    <div class="callout"><b>The AMM's radical answer:</b> don't trade against a <em>person</em> — trade against a <em>pool of money</em> that always quotes a price by a fixed rule. No counterparty needed, ever.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 5 · Part 1 the invariant -->
+  <section class="slide">
+    <div class="eyebrow">Part 1 · the one line that owns the week</div>
+    <h2>The invariant: <span class="mono">x · y = k</span></h2>
+    <div class="code">
+pool holds  x = <span class="g">100 ETH</span>   y = <span class="g">200,000 USDC</span>   →   k = x·y = <span class="g">20,000,000</span>
+
+put in dx ETH, pool returns dy USDC, keeping the product k:
+   (x + dx)(y − dy) = k     <span class="c">⟹</span>     <span class="y">dy = y − k / (x + dx)</span>
+    </div>
+    <div class="callout"><b>Derive this on the board once, slowly.</b> Everything this week is a consequence of this single line. Own this equation and you own the AMM.</div>
+
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;min-height:0;margin-top:6px">
+    <svg viewBox="0 0 720 268" style="width:100%;max-height:40vh" font-family="ui-monospace,Menlo,monospace">
+      <!-- axes -->
+      <line x1="64" y1="18" x2="64" y2="250" stroke="var(--line)" stroke-width="1.5"/>
+      <line x1="64" y1="250" x2="700" y2="250" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="382" y="264" fill="var(--muted)" font-size="12" text-anchor="middle">x · ETH in the pool  →</text>
+      <text x="16" y="134" fill="var(--muted)" font-size="12" text-anchor="middle" transform="rotate(-90 16 134)">y · USDC in the pool</text>
+
+      <!-- the hyperbola x*y=k -->
+      <path d="M64,34.3 L94.8,65.1 L125.6,88.2 L156.4,106.2 L187.2,120.6 L218,132.4 L248.8,142.2 L279.6,150.5 L310.4,157.6 L372,169.1 L433.6,178.1 L495.2,185.3 L587.6,193.7 L680,200.2"
+            fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+      <text x="120" y="52" fill="var(--accent)" font-size="15" font-weight="700">x · y = k = 20,000,000</text>
+
+      <!-- the move: right by dx, down by dy, ending back on the curve -->
+      <!-- dx arrow (horizontal) -->
+      <line x1="187.2" y1="120.6" x2="279.6" y2="120.6" stroke="var(--accent2)" stroke-width="2" marker-end="url(#ah)"/>
+      <text x="233" y="112" fill="var(--accent2)" font-size="12.5" font-weight="700" text-anchor="middle">+ dx = 30 ETH in</text>
+      <!-- dy arrow (vertical) -->
+      <line x1="279.6" y1="120.6" x2="279.6" y2="150.5" stroke="var(--warn)" stroke-width="2" marker-end="url(#aw)"/>
+      <text x="291" y="139" fill="var(--warn)" font-size="12.5" font-weight="700">− dy = 46,154 USDC out</text>
+
+      <!-- dashed drops -->
+      <line x1="187.2" y1="120.6" x2="187.2" y2="250" stroke="var(--line)" stroke-dasharray="4 4"/>
+      <line x1="279.6" y1="150.5" x2="279.6" y2="250" stroke="var(--line)" stroke-dasharray="4 4"/>
+      <text x="187.2" y="264" fill="var(--muted)" font-size="11" text-anchor="middle">100</text>
+      <text x="279.6" y="264" fill="var(--muted)" font-size="11" text-anchor="middle">130</text>
+
+      <!-- START point -->
+      <circle cx="187.2" cy="120.6" r="6" fill="var(--ok)"/>
+      <text x="181" y="112" fill="var(--ink)" font-size="12.5" font-weight="700" text-anchor="end">start (100, 200k)</text>
+      <text x="181" y="126" fill="var(--muted)" font-size="11.5" text-anchor="end">price 2000</text>
+
+      <!-- END point -->
+      <circle cx="279.6" cy="150.5" r="6.5" fill="var(--warn)"/>
+      <text x="300" y="166" fill="var(--ink)" font-size="12.5" font-weight="700">end (130, 153.8k) · still on the curve</text>
+
+      <defs>
+        <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="var(--accent2)"/></marker>
+        <marker id="aw" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="var(--warn)"/></marker>
+      </defs>
+    </svg>
+    </div>
+
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 6 · intuition -->
+  <section class="slide">
+    <div class="eyebrow">Part 1 · intuition</div>
+    <h2>The pool auto-quotes — and the more you buy, the worse the price</h2>
+    <div class="rule"></div>
+    <ul>
+      <li>Take ETH out, you must put USDC in — so ETH gets <b>scarcer</b> in the pool and its price <b>rises</b> as you buy.</li>
+      <li>You don't get one flat price; you <b>slide along a curve</b>. Big trade = you move the price against yourself.</li>
+      <li><b>No human sets the price.</b> The reserves + one equation set it, block by block.</li>
+    </ul>
+    <div class="callout warn"><b>Slippage is not a bug — it's the price.</b> It's the pool charging you more for eating a bigger share of its depth. We'll measure it in code next.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 7 · Part 2 read amm.py -->
+  <section class="slide">
+    <div class="eyebrow">Part 2 · live-run code/amm.py (~70 lines)</div>
+    <h2>Read the code — three functions</h2>
+    <div class="rule"></div>
+    <ul>
+      <li><b>swap_a_for_b(dx)</b> — the invariant in code. The <b>fee stays in the pool</b> → that's exactly how LPs earn.</li>
+      <li><b>quote_a_for_b(dx)</b> — price <b>without</b> mutating the pool (needed to compute slippage before you trade).</li>
+      <li><b>slippage_bps(pool, dx)</b> — mid price vs. the actual average fill you get.</li>
+    </ul>
+    <div class="callout"><b>The punchline of <span class="mono">python amm.py</span>:</b> small trades ≈ no slippage; <b>large trades slide down the curve fast.</b></div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 8 · slippage concrete -->
+  <section class="slide">
+    <div class="eyebrow">Part 2 · make it concrete</div>
+    <h2>Same pool, small vs. large trade</h2>
+    <div class="rule"></div>
+    <p style="font-size:16px;color:var(--muted);margin-bottom:4px">Pool: 100 ETH / 200,000 USDC · mid price 2000 USDC/ETH.</p>
+    <table>
+      <tr><th>You sell</th><th>You receive</th><th>Average price</th><th>vs. 2000</th></tr>
+      <tr><td>0.1 ETH</td><td>≈ 199.6 USDC</td><td>≈ 1996</td><td><b style="color:var(--ok)">−0.2%</b> barely any slip</td></tr>
+      <tr><td>5 ETH</td><td>≈ 9,524 USDC</td><td>≈ 1905</td><td><b style="color:var(--warn)">−4.8%</b></td></tr>
+      <tr><td>30 ETH</td><td>≈ 46,154 USDC</td><td>≈ 1538</td><td><b style="color:var(--bad)">−23%</b> you crushed your own price</td></tr>
+    </table>
+    <div class="callout"><b>Slippage scales with trade size relative to pool depth.</b> A price on the screen is <b>not</b> the price you get for a big order — the curve is.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 8b · the curve, visual -->
+  <section class="slide">
+    <div class="eyebrow">Part 2 · see it, don't memorize it</div>
+    <h2>The same numbers, as one curve: <span class="mono">x·y=k</span></h2>
+    <div class="rule"></div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;min-height:0">
+    <svg viewBox="0 0 640 300" style="width:100%;max-height:56vh" font-family="ui-monospace,Menlo,monospace">
+      <!-- axes -->
+      <line x1="64" y1="24" x2="64" y2="290" stroke="var(--line)" stroke-width="1.5"/>
+      <line x1="64" y1="290" x2="610" y2="290" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="330" y="299" fill="var(--muted)" font-size="12" text-anchor="middle">ETH in the pool  →  (you add ETH as you sell)</text>
+      <text x="20" y="160" fill="var(--muted)" font-size="12" text-anchor="middle" transform="rotate(-90 20 160)">USDC in the pool</text>
+
+      <!-- the hyperbola x*y=k -->
+      <path d="M64,36.7 L102.3,72.9 L140.6,100 L178.9,121.1 L217.1,138 L236.3,145.2 L293.7,163.3 L332,173.1 L408.6,188.7 L504.4,203.1 L600,214"
+            fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+      <text x="96" y="58" fill="var(--accent)" font-size="14" font-weight="700">x · y = k</text>
+
+      <!-- dashed drops to x-axis -->
+      <line x1="217.1" y1="138" x2="217.1" y2="290" stroke="var(--line)" stroke-dasharray="4 4"/>
+      <line x1="332" y1="173.1" x2="332" y2="290" stroke="var(--line)" stroke-dasharray="4 4"/>
+      <text x="217" y="305" fill="var(--muted)" font-size="11" text-anchor="middle">100</text>
+      <text x="332" y="305" fill="var(--muted)" font-size="11" text-anchor="middle">130</text>
+
+      <!-- START -->
+      <circle cx="217.1" cy="138" r="6" fill="var(--accent2)"/>
+      <text x="211" y="128" fill="var(--ink)" font-size="12.5" font-weight="700" text-anchor="end">start · 100 ETH / 200k</text>
+      <text x="211" y="143" fill="var(--muted)" font-size="11.5" text-anchor="end">price 2000</text>
+
+      <!-- 0.1 ETH note -->
+      <text x="250" y="112" fill="var(--ok)" font-size="12">sell 0.1 → 1996  (−0.2%, barely moves)</text>
+
+      <!-- 5 ETH -->
+      <circle cx="236.3" cy="145.2" r="5" fill="var(--warn)"/>
+      <text x="300" y="140" fill="var(--warn)" font-size="12.5" font-weight="700">sell 5 → 1905  (−4.8%)</text>
+
+      <!-- 30 ETH -->
+      <circle cx="332" cy="173.1" r="6.5" fill="var(--bad)"/>
+      <text x="345" y="176" fill="var(--bad)" font-size="12.5" font-weight="700">sell 30 → 1538  (−23%, you slid far)</text>
+    </svg>
+    </div>
+    <div class="callout"><b>Read the picture:</b> a tiny trade barely nudges you along the curve (price ≈ 2000); a huge trade <b>slides you far down it</b> — the pool's ETH piles up, USDC drains, and your average price craters. <b>Slippage = how far along the curve your order drags you.</b></div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 9 · Part 3 divider -->
+  <section class="slide divider">
+    <div class="num">PART 3 · R4</div>
+    <h1>Deploy your own Uniswap<br>on <span class="mono">Base Sepolia</span> — a real testnet</h1>
+    <p class="lead">Test ETH only, never real money. Every step is a permanent tx you can open on BaseScan. Read price → sell 5 tETH → read price again.</p>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span>Part 3</span></div>
+  </section>
+
+  <!-- 10 · base sepolia commands -->
+  <section class="slide">
+    <div class="eyebrow">Part 3 · in code/amm-foundry</div>
+    <h2>Three steps: start → deploy → interact</h2>
+    <div class="code">
+forge test                              <span class="c"># 1) 5 passed — contract is correct</span>
+forge script script/DeployAMM.s.sol \
+     --rpc-url base-sepolia --broadcast --verify   <span class="c"># 2) deploy + seed pool, ON A REAL TESTNET</span>
+
+export AMM=0xff64685c8E05b5f2564DaBb6Eb7aB740aE5dD520   <span class="c"># the pool we deployed</span>
+cast call $AMM <span class="g">"price0In1()"</span> --rpc-url base-sepolia   <span class="c"># 3) 2000e18 = 2000</span>
+cast send $AMM <span class="y">"swap0For1(uint256)"</span> 5e18 --rpc-url base-sepolia  <span class="c"># sell 5 tETH</span>
+cast call $AMM <span class="g">"price0In1()"</span> --rpc-url base-sepolia   <span class="b"># 1814e18 — price moved, on-chain!</span>
+    </div>
+    <div class="callout"><span class="mono">cast call</span> = read-only, free (view) · <span class="mono">cast send</span> = a transaction that changes state. <b>view vs state — live on a real chain.</b> Every swap is a permanent tx you (and the students) can open on BaseScan.</div>
+    <div class="callout" style="background:color-mix(in srgb,var(--accent) 10%,transparent);border-color:color-mix(in srgb,var(--accent) 45%,var(--border))">
+      <b>🔗 Live on Base Sepolia — open it on BaseScan in class:</b>
+      <div style="font-family:ui-monospace,Menlo,monospace;font-size:14px;line-height:2;margin-top:6px">
+        <span class="c" style="opacity:.8"># the exact contract we wrote — deployed to a real testnet</span><br>
+        <b>AMM</b> <a href="https://sepolia.basescan.org/address/0xff64685c8E05b5f2564DaBb6Eb7aB740aE5dD520" style="color:var(--accent)">0xff64…dD520</a> &nbsp;·&nbsp;
+        <b>tETH</b> <a href="https://sepolia.basescan.org/address/0x3F871e42A757d339fCCe8B0c3421b408a68cAe1a" style="color:var(--accent)">0x3F87…Ae1a</a> &nbsp;·&nbsp;
+        <b>tUSDC</b> <a href="https://sepolia.basescan.org/address/0x64d4dA65e3CBD1dFdAf308B23639B0Ca05D92353" style="color:var(--accent)">0x64d4…2353</a><br>
+        <b>sample swap</b> sell 5 tETH → <b style="color:var(--accent2)">9,496.59 tUSDC</b>, price 2000 → <b style="color:#f87171">1814.3</b> (one step down the x·y=k curve):
+        <a href="https://sepolia.basescan.org/tx/0xff4c69928081b0b3e86af154b320240917dd57c872b93525f7cdeddd5abe1295" style="color:#fbbf24">swap tx 0xff4c…1295</a>
+      </div>
+    </div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 11 · magic moment -->
+  <section class="slide">
+    <div class="eyebrow">Part 3 · the magic moment</div>
+    <h2>The contract <em>is</em> that one line, put on-chain</h2>
+    <div class="rule"></div>
+    <p style="font-size:16px;color:var(--muted);margin-bottom:4px">After selling 5 ETH, the on-chain pool reads:</p>
+    <table>
+      <tr><th></th><th>Before</th><th>After 5-ETH swap</th></tr>
+      <tr><td>ETH reserve</td><td>100</td><td><b>105</b></td></tr>
+      <tr><td>USDC reserve</td><td>200,000</td><td><b>190,503</b></td></tr>
+      <tr><td>Price</td><td>2000</td><td><b>1814.3</b></td></tr>
+    </table>
+    <div class="callout"><b>These numbers match <span class="mono">amm.py</span>'s simulation exactly.</b> The Python intuition and the Solidity contract are the same math — one line of <span class="mono">x·y=k</span>, once in a script, once on a real chain.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 12 · LP shares -->
+  <section class="slide">
+    <div class="eyebrow">Part 3 · R4 main track · who fills the pool?</div>
+    <h2>Liquidity providers &amp; LP shares</h2>
+    <div class="rule"></div>
+    <ul>
+      <li>Someone has to <b>put the 100 ETH + 200,000 USDC in</b>. Those are <b>Liquidity Providers (LPs)</b>.</li>
+      <li>Add <span class="mono">add_liquidity</span> / <span class="mono">remove_liquidity</span> + <b>LP-share accounting</b>: your share = your slice of the pool.</li>
+      <li>The <b>0.3% fee stays in the pool</b> → k slowly grows → <b>every LP's share silently gains value</b> (no payout loop needed).</li>
+    </ul>
+    <div class="callout"><b>Same idea as your Vault → ERC-4626 shares:</b> don't record "you own 100" — record "you own X% of a pool that grows." Fees accrue to the share price, not to an account.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 13 · Part 4 impermanent loss Feynman -->
+  <section class="slide">
+    <div class="eyebrow">Part 4 · the other side of being an LP</div>
+    <h2>Impermanent loss — a vending machine that auto-rebalances</h2>
+    <div class="rule"></div>
+    <div class="two">
+      <div class="box"><h3>ETH rises</h3>
+        <ul>
+          <li>Your machine's ETH is now cheap vs. the market.</li>
+          <li>Arbitrageurs <b>buy ETH out of your pool</b> until it catches up.</li>
+          <li><b>The machine sold your ETH on the way up.</b></li>
+        </ul>
+      </div>
+      <div class="box alt"><h3>ETH falls</h3>
+        <ul>
+          <li>People <b>dump ETH into your pool</b>.</li>
+          <li>It <b>keeps buying on the way down.</b></li>
+          <li>You end up bagholding the loser.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout bad"><b>Both directions put you on the wrong side:</b> always selling the winner, buying the loser — the opposite of just holding. <b>"You'd have been worth more doing nothing." That gap is impermanent loss.</b></div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 14 · IL numbers + P&L -->
+  <section class="slide">
+    <div class="eyebrow">Part 4 · code/il_demo.py</div>
+    <h2>The number, and an LP's real P&amp;L</h2>
+    <table>
+      <tr><th>Price ratio r</th><th>Impermanent loss</th><th>Note</th></tr>
+      <tr><td>±25% (0.8 / 1.25)</td><td>−0.62%</td><td>small move, small loss</td></tr>
+      <tr><td>2× or ½ (0.5 / 2.0)</td><td><b>−5.72%</b></td><td>up 2× and down ½ lose the <b>same</b> — symmetric</td></tr>
+      <tr><td>4× or ¼ (0.25 / 4.0)</td><td>−20%</td><td>big move, big loss</td></tr>
+      <tr><td>no move (r=1)</td><td>0%</td><td>and it's <b>impermanent</b> — reverts if price returns</td></tr>
+    </table>
+    <div class="code" style="margin-top:12px">LP real P&amp;L = <span class="g">fees (+)</span> − <span class="b">impermanent loss (−)</span>     <span class="c"># bet: volume &gt; volatility</span></div>
+    <div class="callout warn"><b>Honesty beat:</b> advertised LP yields almost never subtract IL. <b>A price on screen is not the price you get; an advertised yield is not the yield you keep.</b></div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 15 · interactive + takeaways -->
+  <section class="slide">
+    <div class="eyebrow">Play it yourself + key takeaways</div>
+    <h2>Drive the curve, then keep these</h2>
+    <div class="rule"></div>
+    <ul>
+      <li><b>x·y=k is the whole AMM;</b> swap output = <span class="mono">y − k/(x+dx)</span>.</li>
+      <li><b>Slippage is part of the price</b> and grows with trade size vs. pool depth.</li>
+      <li><b>LPs earn fees but eat impermanent loss;</b> being an LP is a bet that volume beats volatility.</li>
+      <li>No counterparty, no operator — <b>a pool + one equation</b> is the whole exchange.</li>
+    </ul>
+    <div class="callout">▶ <b>Open now:</b> <span class="mono">Week2-AMM-swap.html</span> — drag the trade size, watch the price slide and slippage grow; toggle IL. Same numbers as <span class="mono">amm.py</span>, nothing to install.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 16 · Next -->
+  <section class="slide divider">
+    <div class="num">NEXT · SAME WEEK, SESSION 2</div>
+    <h1>Don't sell — <span class="mono">borrow</span><br>Lending &amp; liquidation</h1>
+    <p class="lead">You've got ETH and you're bullish. Post it as collateral, borrow cash, and meet the one number that can liquidate you: the health factor.</p>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span>Up next</span></div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const N = slides.length;
+  let i = 0;
+  const prog = document.getElementById('prog');
+  const counter = document.getElementById('counter');
+  function show(n){
+    i = Math.max(0, Math.min(N-1, n));
+    slides.forEach((s,k)=>s.classList.toggle('on', k===i));
+    prog.style.width = ((i+1)/N*100)+'%';
+    counter.textContent = (i+1)+' / '+N;
+    try{ location.hash = '#'+(i+1); }catch(e){}
+  }
+  function nextS(){ show(i+1); }
+  function prevS(){ show(i-1); }
+  document.getElementById('next').onclick = nextS;
+  document.getElementById('prev').onclick = prevS;
+  document.addEventListener('keydown', e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){ e.preventDefault(); nextS(); }
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); prevS(); }
+    else if(e.key==='Home'){ show(0); }
+    else if(e.key==='End'){ show(N-1); }
+    else if(e.key==='f'||e.key==='F'){ toggleFs(); }
+    else if(e.key==='o'||e.key==='O'){ jump(); }
+  });
+  document.getElementById('deck').addEventListener('click', e=>{
+    if(e.target.closest('button,a,input')) return;
+    const x = e.clientX / window.innerWidth;
+    if(x>0.62) nextS(); else if(x<0.38) prevS();
+  });
+  function jump(){
+    const n = prompt('Go to slide? (1–'+N+')', (i+1));
+    if(n){ const k=parseInt(n,10); if(!isNaN(k)) show(k-1); }
+  }
+  function toggleFs(){
+    if(!document.fullscreenElement){ document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen(); }
+    else { document.exitFullscreen&&document.exitFullscreen(); }
+  }
+  document.getElementById('fsBtn').onclick = toggleFs;
+  document.getElementById('themeBtn').onclick = ()=>{
+    const r = document.documentElement;
+    r.setAttribute('data-theme', r.getAttribute('data-theme')==='light' ? 'dark' : 'light');
+  };
+  const start = parseInt((location.hash||'#1').slice(1),10);
+  show(isNaN(start)?0:start-1);
+})();
+</script>
+</body>
+</html>
