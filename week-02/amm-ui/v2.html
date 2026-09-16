@@ -166,7 +166,7 @@ const BASE_TOKENS=[
 function loadCustom(){ try{ return JSON.parse(localStorage.getItem("customTokens")||"[]"); }catch(e){ return []; } }
 function saveCustom(a){ try{ localStorage.setItem("customTokens", JSON.stringify(a)); }catch(e){} }
 let TOKENS = BASE_TOKENS.concat(loadCustom());
-const FACTORY_ABI=["function getPair(address,address) view returns (address)"];
+const FACTORY_ABI=["function getPair(address,address) view returns (address)","function allPairsLength() view returns (uint256)","function allPairs(uint256) view returns (address)"];
 const ROUTER_ABI=[
   "function getAmountOut(uint256,uint256,uint256) pure returns (uint256)",
   "function quote(uint256,uint256,uint256) pure returns (uint256)",
@@ -206,6 +206,35 @@ function renderTokens(){
   $("importRow").innerHTML=TOKENS.map(t=>`<button onclick="watchToken('${t.addr}','${t.sym}',${t.dec})">Import ${t.sym}</button>`).join("");
 }
 renderTokens();
+// ★ load the SHARED token list from the chain (every pooled token), so everyone sees the same list —
+//   not just what's in this browser's localStorage. This is the "chain = shared backend" fix.
+async function loadChainTokens(){
+  try{
+    const f=new ethers.Contract(FACTORY,FACTORY_ABI,readP);
+    const n=Number(await f.allPairsLength());
+    const pairAbi=["function token0() view returns (address)","function token1() view returns (address)"];
+    const metaAbi=["function symbol() view returns (string)","function decimals() view returns (uint8)"];
+    const seen=new Set(TOKENS.map(t=>t.addr.toLowerCase()));
+    let added=false;
+    for(let i=0;i<n;i++){
+      const pair=await f.allPairs(i);
+      const p=new ethers.Contract(pair,pairAbi,readP);
+      const toks=await Promise.all([p.token0(),p.token1()]);
+      for(const addr of toks){
+        if(seen.has(addr.toLowerCase())) continue;
+        seen.add(addr.toLowerCase());
+        try{
+          const m=new ethers.Contract(addr,metaAbi,readP);
+          const [sym,dec]=await Promise.all([m.symbol(),m.decimals()]);
+          TOKENS.push({sym, addr, dec:Number(dec)});
+          added=true;
+        }catch(e){}
+      }
+    }
+    if(added) renderTokens();
+  }catch(e){ /* RPC hiccup: keep base + localStorage list */ }
+}
+loadChainTokens();
 async function watchToken(addr,sym,dec){
   try{ await window.ethereum.request({method:"wallet_watchAsset",params:{type:"ERC20",options:{address:addr,symbol:sym,decimals:dec}}}); }
   catch(e){}
