@@ -133,6 +133,7 @@
   <div class="card">
     <h3>Test tokens (free mint)</h3>
     <div class="mintrow" id="mintRow"></div>
+    <div class="log" id="logMint"></div>
     <h3 style="margin-top:12px">Import to MetaMask (see balances in wallet)</h3>
     <div class="mintrow" id="importRow"></div>
     <h3 style="margin-top:14px">Wrap ETH → WETH (get the real token)</h3>
@@ -420,9 +421,17 @@ async function doRemove(){
   }catch(e){ $("logRm").textContent="remove failed: "+(e.shortMessage||e.message); }
 }
 async function mint(addr){
-  if(!signer){ alert("Connect wallet first."); return; }
-  try{ const c=new ethers.Contract(addr,ERC20_ABI,signer); const tx=await c.mint(me,ethers.parseUnits("1000",tok(addr).dec)); await tx.wait(); refresh(); }
-  catch(e){ alert("mint failed: "+(e.shortMessage||e.message)); }
+  if(!signer){ $("logMint").textContent="Connect wallet first (top-right)"; return; }
+  const sym=tok(addr).sym;
+  try{
+    $("logMint").textContent="minting 1000 "+sym+" … confirm in wallet";
+    const c=new ethers.Contract(addr,ERC20_ABI,signer);
+    const tx=await c.mint(me,ethers.parseUnits("1000",tok(addr).dec));
+    $("logMint").innerHTML=`minting… <a target="_blank" href="https://sepolia.basescan.org/tx/${tx.hash}">tx↗</a>`;
+    await tx.wait();
+    $("logMint").innerHTML=`+1000 ${sym} ✓ — Balance updates below; click <b>Import ${sym}</b> to see it in MetaMask`;
+    refresh();
+  }catch(e){ $("logMint").textContent="mint failed: "+(e.shortMessage||e.message); }
 }
 
 $("connect").onclick=connect;
