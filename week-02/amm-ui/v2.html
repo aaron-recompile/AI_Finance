@@ -127,6 +127,11 @@
     <button class="act primary" onclick="deployToken()">Deploy ERC-20</button>
     <div class="log" id="logDeploy"></div>
     <div class="teach">💡 Deploys a fresh open-mint ERC-20 from your wallet and adds it to every dropdown. Anyone can then <span class="mono">+1000</span> mint it, pool it, and swap it. <span class="link" onclick="forgetCustom()" style="cursor:pointer;text-decoration:underline">clear my deployed list</span></div>
+    <h3 style="margin-top:14px">Add an existing token by address</h3>
+    <div class="field"><div class="row"><input id="addTokAddr" type="text" placeholder="0x… paste any token address (e.g. a friend's BETH)"></div></div>
+    <button class="act approve" onclick="addTokenByAddress()">Add to my list</button>
+    <div class="log" id="logAddTok"></div>
+    <div class="teach">💡 A token that's deployed but has no pool isn't in the chain's pool list, so it can't auto-appear. Paste its address here to see it — exactly how you "import a token" on real Uniswap. Pool it once, and then it shows up for everyone automatically.</div>
   </div>
 
   <!-- faucet -->
@@ -235,6 +240,21 @@ async function loadChainTokens(){
   }catch(e){ /* RPC hiccup: keep base + localStorage list */ }
 }
 loadChainTokens();
+// add any ERC-20 to your list by pasting its address (covers deployed-but-not-pooled tokens)
+async function addTokenByAddress(){
+  const addr=$("addTokAddr").value.trim();
+  if(!ethers.isAddress(addr)){ $("logAddTok").textContent="enter a valid token address"; return; }
+  if(tok(addr)){ $("logAddTok").textContent="already in your list"; return; }
+  try{
+    const m=new ethers.Contract(addr,["function symbol() view returns (string)","function decimals() view returns (uint8)"],readP);
+    const [sym,dec]=await Promise.all([m.symbol(),m.decimals()]);
+    const t={sym, addr:ethers.getAddress(addr), dec:Number(dec)};
+    const custom=loadCustom(); custom.push(t); saveCustom(custom);
+    TOKENS.push(t); renderTokens();
+    $("logAddTok").innerHTML=`added <b>${sym}</b> ✓ — now in every dropdown`;
+    $("addTokAddr").value="";
+  }catch(e){ $("logAddTok").textContent="no ERC-20 found at that address: "+(e.shortMessage||e.message); }
+}
 async function watchToken(addr,sym,dec){
   try{ await window.ethereum.request({method:"wallet_watchAsset",params:{type:"ERC20",options:{address:addr,symbol:sym,decimals:dec}}}); }
   catch(e){}
