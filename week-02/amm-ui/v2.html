@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class AMM V2 · AI Finance</title>
+<style>
+  :root{--bg:#0d0b14;--card:#161320;--card2:#1e1a2b;--border:#2c2740;--text:#f4f1fb;--muted:#9a92b3;
+    --pink:#ff2e88;--purple:#8b5cf6;--green:#4ade80;--gold:#fbbf24;--red:#ff7b72;--mono:ui-monospace,Menlo,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:radial-gradient(1200px 700px at 80% -10%,#1a1330,var(--bg));
+    color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:18px}
+  .wrap{max-width:470px;margin:0 auto}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .brand{font-weight:800;font-size:18px}.brand span{background:linear-gradient(90deg,var(--pink),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
+  button{font-family:inherit;cursor:pointer;border:0;border-radius:12px;font-weight:700}
+  .btn-conn{background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff;padding:9px 15px;font-size:13.5px}
+  .acct{font-family:var(--mono);font-size:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:7px 11px}
+  .tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:5px;margin-bottom:12px}
+  .tabs button{flex:1;background:transparent;color:var(--muted);padding:9px;font-size:14px;border-radius:10px}
+  .tabs button.on{background:var(--card2);color:var(--text)}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px}
+  .field{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:11px 13px;margin:7px 0}
+  .field .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .field label{font-size:11.5px;color:var(--muted)}
+  .field input{background:transparent;border:0;color:var(--text);font-size:22px;font-weight:700;width:55%;outline:none}
+  select{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:16px;padding:7px 10px;font-weight:800;font-size:14px;cursor:pointer}
+  .bal{font-size:11px;color:var(--muted);margin-top:3px}
+  .flip{display:flex;justify-content:center;margin:-3px 0}
+  .flip button{background:var(--card2);border:1px solid var(--border);color:var(--purple);width:32px;height:32px;border-radius:10px;font-size:15px}
+  .act{width:100%;padding:13px;font-size:15px;margin-top:6px}
+  .act.primary{background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff}
+  .act.approve{background:var(--purple);color:#fff}
+  .act:disabled{opacity:.4;cursor:not-allowed}
+  .stat{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin:3px 0}
+  .stat b{color:var(--text);font-family:var(--mono)}
+  .est{font-size:12px;color:var(--muted);text-align:center;margin:7px 0;min-height:15px}
+  .est b{color:var(--text)}
+  h3{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px}
+  .mintrow{display:flex;gap:7px;flex-wrap:wrap}
+  .mintrow button{flex:1;background:var(--card2);border:1px solid var(--border);color:var(--text);padding:9px;font-size:12px;min-width:90px}
+  .log{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px;word-break:break-all;min-height:14px}
+  .log a{color:var(--purple)}
+  .teach{background:color-mix(in srgb,var(--gold) 9%,transparent);border:1px solid color-mix(in srgb,var(--gold) 35%,var(--border));border-radius:12px;padding:10px 13px;margin-top:10px;font-size:12px;color:var(--muted)}
+  .teach b{color:var(--gold)}
+  .hidden{display:none}
+  .footer{text-align:center;font-size:10.5px;color:var(--muted);margin-top:6px}
+  .footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">🦄 <span>Class AMM V2</span> <span style="color:var(--muted);font-weight:500;font-size:12px">AI Finance · Factory + Router</span></div>
+    <button id="connect" class="btn-conn">Connect</button>
+  </div>
+
+  <div class="tabs">
+    <button id="tabSwap" class="on" onclick="tab('swap')">Swap</button>
+    <button id="tabPool" onclick="tab('pool')">Pool (Provide Liquidity)</button>
+  </div>
+
+  <!-- pool stats (shared) -->
+  <div class="card">
+    <div class="stat"><span>Pair</span><b id="pairAddr">—</b></div>
+    <div class="stat"><span>Reserves</span><b id="reserves">—</b></div>
+    <div class="stat"><span>Price</span><b id="price">—</b></div>
+    <div class="stat"><span>k = x·y</span><b id="kval">—</b></div>
+    <div class="stat"><span>Your pool share</span><b id="share">—</b></div>
+  </div>
+
+  <!-- SWAP -->
+  <div id="paneSwap" class="card">
+    <div class="field">
+      <div class="row"><label>You pay</label><select id="fromSel" onchange="onTokenChange()"></select></div>
+      <div class="row"><input id="amtIn" type="text" inputmode="decimal" placeholder="0.0" oninput="quoteSwap()"></div>
+      <div class="bal">Balance: <span id="fromBal">—</span></div>
+    </div>
+    <div class="flip"><button onclick="flip()">↓</button></div>
+    <div class="field">
+      <div class="row"><label>You receive (est.)</label><select id="toSel" onchange="onTokenChange()"></select></div>
+      <div class="row"><input id="amtOut" type="text" placeholder="0.0" disabled></div>
+      <div class="bal">Balance: <span id="toBal">—</span></div>
+    </div>
+    <div class="est" id="estSwap"></div>
+    <button id="approveSwap" class="act approve hidden" onclick="approve('swap')">Approve</button>
+    <button id="doSwap" class="act primary" onclick="doSwap()" disabled>Connect wallet</button>
+    <div class="log" id="logSwap"></div>
+    <div class="teach">💡 <b>Swap</b> goes through the Router: find the pool → compute <span class="mono">getAmountOut</span> (0.3% fee) → send input token into the Pair → <span class="mono">pair.swap</span>. Price impact = how far you pushed the x·y=k curve.</div>
+  </div>
+
+  <!-- POOL -->
+  <div id="panePool" class="card hidden">
+    <h3>Add liquidity (become the market maker)</h3>
+    <div class="field">
+      <div class="row"><label>Token A</label><select id="lpSelA" onchange="onTokenChange()"></select></div>
+      <div class="row"><input id="lpAmtA" type="text" inputmode="decimal" placeholder="0.0" oninput="quoteLP('A')"></div>
+      <div class="bal">Balance: <span id="lpBalA">—</span></div>
+    </div>
+    <div class="field">
+      <div class="row"><label>Token B</label><select id="lpSelB" onchange="onTokenChange()"></select></div>
+      <div class="row"><input id="lpAmtB" type="text" inputmode="decimal" placeholder="0.0" oninput="quoteLP('B')"></div>
+      <div class="bal">Balance: <span id="lpBalB">—</span></div>
+    </div>
+    <div class="est" id="estLP"></div>
+    <button id="approveLPA" class="act approve hidden" onclick="approve('lpA')">Approve A</button>
+    <button id="approveLPB" class="act approve hidden" onclick="approve('lpB')">Approve B</button>
+    <button id="doAdd" class="act primary" onclick="doAdd()" disabled>Connect wallet</button>
+    <div class="log" id="logLP"></div>
+    <div class="teach">💡 <b>Make a market</b>: deposit both tokens → get LP shares (your % of the pool). <b>The first LP sets the price by ratio</b>; after that you must match the current ratio. You earn 0.3% fees and bear IL. If no pool exists it auto-<span class="mono">createPair</span>.</div>
+
+    <h3 style="margin-top:16px">Remove liquidity</h3>
+    <div class="field">
+      <div class="row"><label>LP to burn</label><span style="font-size:12px;color:var(--muted)">bal: <span id="lpTokBal">—</span></span></div>
+      <div class="row"><input id="rmAmt" type="text" inputmode="decimal" placeholder="0.0"></div>
+    </div>
+    <button id="approveRm" class="act approve hidden" onclick="approve('rm')">Approve LP</button>
+    <button id="doRemove" class="act primary" onclick="doRemove()" disabled>Connect wallet</button>
+    <div class="log" id="logRm"></div>
+  </div>
+
+  <!-- deploy new token (live in class) -->
+  <div class="card">
+    <h3>Deploy new token (live)</h3>
+    <div class="field"><div class="row"><label>Symbol</label></div><div class="row"><input id="newSym" type="text" placeholder="mUSDT"></div></div>
+    <div class="field"><div class="row"><label>Name (optional)</label></div><div class="row"><input id="newName" type="text" placeholder="Mock USDT"></div></div>
+    <button class="act primary" onclick="deployToken()">Deploy ERC-20</button>
+    <div class="log" id="logDeploy"></div>
+    <div class="teach">💡 Deploys a fresh open-mint ERC-20 from your wallet and adds it to every dropdown. Anyone can then <span class="mono">+1000</span> mint it, pool it, and swap it. <span class="link" onclick="forgetCustom()" style="cursor:pointer;text-decoration:underline">clear my deployed list</span></div>
+  </div>
+
+  <!-- faucet -->
+  <div class="card">
+    <h3>Test tokens (free mint)</h3>
+    <div class="mintrow" id="mintRow"></div>
+    <h3 style="margin-top:12px">Import to MetaMask (see balances in wallet)</h3>
+    <div class="mintrow" id="importRow"></div>
+    <h3 style="margin-top:14px">Wrap ETH → WETH (get the real token)</h3>
+    <div class="field"><div class="row"><label>ETH to wrap</label></div><div class="row"><input id="wrapAmt" type="text" inputmode="decimal" placeholder="0.01"></div></div>
+    <button class="act approve" onclick="wrapEth()">Wrap ETH → WETH</button>
+    <div class="log" id="logWrap"></div>
+    <div class="teach">💡 Native ETH isn't an ERC-20, so AMMs trade <b>WETH</b> — ETH deposited into the WETH contract 1:1. This calls <span class="mono">WETH.deposit()</span> with your ETH as <span class="mono">msg.value</span>.</div>
+  </div>
+
+  <div class="footer"><b>MB/CSE 599 · AI Finance</b> — teaching demo · Base Sepolia · <a id="scanF" target="_blank" rel="noopener">Factory</a> · <a id="scanR" target="_blank" rel="noopener">Router</a></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
+<script src="mockerc20.js"></script>
+<script>
+const RPC="https://base-sepolia-rpc.publicnode.com", CHAIN=84532, CHAIN_HEX="0x14a34";
+const FACTORY="0x34aEFafb9b530b8bCE29da9A67A2BafC6eD95B20";
+const ROUTER ="0x2fc7C313bf38f0af4D92E8bE7347500D39174b82";
+// mock test tokens (open mint) + REAL Base Sepolia tokens (faucet only, mintable:false)
+const BASE_TOKENS=[
+  {sym:"MAX",   addr:"0x22201343039bb6418546978b447a45ee49f8daa5", dec:18},
+  {sym:"tUSDC", addr:"0x6797beC4DC1D4444Fe81790c47e9FB91e491Ac69", dec:18},
+  {sym:"tETH",  addr:"0x87637BD469Aaec82190286a9864cFF16c1127a42", dec:18},
+  {sym:"FARM",  addr:"0x026455e72a9dF06Fa4585F694d42E4cED13C01cd", dec:18},
+  // real Base Sepolia tokens — WETH (wrap ETH) & Circle USDC (6 decimals!)
+  {sym:"WETH",  addr:"0x4200000000000000000000000000000000000006", dec:18, mintable:false},
+  {sym:"USDC",  addr:"0x036CbD53842c5426634e7929541eC2318f3dCF7e", dec:6,  mintable:false},
+];
+// tokens deployed live in class are saved per-browser and merged in
+function loadCustom(){ try{ return JSON.parse(localStorage.getItem("customTokens")||"[]"); }catch(e){ return []; } }
+function saveCustom(a){ try{ localStorage.setItem("customTokens", JSON.stringify(a)); }catch(e){} }
+let TOKENS = BASE_TOKENS.concat(loadCustom());
+const FACTORY_ABI=["function getPair(address,address) view returns (address)"];
+const ROUTER_ABI=[
+  "function getAmountOut(uint256,uint256,uint256) pure returns (uint256)",
+  "function quote(uint256,uint256,uint256) pure returns (uint256)",
+  "function addLiquidity(address,address,uint256,uint256,address) returns (uint256,uint256,uint256)",
+  "function removeLiquidity(address,address,uint256,address) returns (uint256,uint256)",
+  "function swapExactTokensForTokens(uint256,uint256,address,address,address) returns (uint256)"
+];
+const PAIR_ABI=[
+  "function getReserves() view returns (uint112,uint112)",
+  "function token0() view returns (address)",
+  "function totalSupply() view returns (uint256)",
+  "function balanceOf(address) view returns (uint256)",
+  "function approve(address,uint256) returns (bool)",
+  "function allowance(address,address) view returns (uint256)"
+];
+const ERC20_ABI=[
+  "function balanceOf(address) view returns (uint256)",
+  "function allowance(address,address) view returns (uint256)",
+  "function approve(address,uint256) returns (bool)",
+  "function mint(address,uint256)"
+];
+const $=id=>document.getElementById(id);
+const tok=a=>TOKENS.find(t=>t.addr.toLowerCase()===a.toLowerCase());
+// fixed quote orientation: the USD-token is the quote, the other is the base → always show 1 base = X quote
+function baseQuote(a,b){ const ta=tok(a),tb=tok(b); const au=/usd/i.test(ta.sym),bu=/usd/i.test(tb.sym);
+  if(bu&&!au) return {base:ta,quote:tb}; if(au&&!bu) return {base:tb,quote:ta}; return {base:ta,quote:tb}; }
+let readP=new ethers.JsonRpcProvider(RPC), signer=null, me=null;
+document.getElementById("scanF").href="https://sepolia.basescan.org/address/"+FACTORY;
+document.getElementById("scanR").href="https://sepolia.basescan.org/address/"+ROUTER;
+
+// populate selects (keeps current picks so a live-deployed token just appears in the list)
+function fill(sel,def){ const cur=sel.value; sel.innerHTML=TOKENS.map(t=>`<option value="${t.addr}">${t.sym}</option>`).join(""); sel.value = (cur && tok(cur))? cur : def; }
+function renderTokens(){
+  fill($("fromSel"),TOKENS[0].addr); fill($("toSel"),TOKENS[1].addr);
+  fill($("lpSelA"),TOKENS[0].addr);  fill($("lpSelB"),TOKENS[1].addr);
+  $("mintRow").innerHTML=TOKENS.filter(t=>t.mintable!==false).map(t=>`<button onclick="mint('${t.addr}')">+1000 ${t.sym}</button>`).join("");
+  $("importRow").innerHTML=TOKENS.map(t=>`<button onclick="watchToken('${t.addr}','${t.sym}',${t.dec})">Import ${t.sym}</button>`).join("");
+}
+renderTokens();
+async function watchToken(addr,sym,dec){
+  try{ await window.ethereum.request({method:"wallet_watchAsset",params:{type:"ERC20",options:{address:addr,symbol:sym,decimals:dec}}}); }
+  catch(e){}
+}
+// ★ deploy a fresh ERC20 live in class (instructor's wallet pays gas)
+async function deployToken(){
+  if(!signer){ alert("Connect wallet first"); return; }
+  const sym=$("newSym").value.trim(); if(!sym){ $("logDeploy").textContent="Enter a symbol (e.g. mUSDT)"; return; }
+  const name=$("newName").value.trim()||sym;
+  try{
+    $("logDeploy").textContent="deploying "+sym+" … confirm in wallet";
+    const f=new ethers.ContractFactory(["constructor(string,string)","function mint(address,uint256)"], window.MOCK_BYTECODE, signer);
+    const c=await f.deploy(name, sym);
+    $("logDeploy").textContent="waiting for deploy tx…";
+    await c.waitForDeployment();
+    const addr=await c.getAddress();
+    const custom=loadCustom(); custom.push({sym,addr,dec:18}); saveCustom(custom);
+    TOKENS.push({sym,addr,dec:18}); renderTokens();
+    $("logDeploy").innerHTML=`deployed <b>${sym}</b> ✓ <a target="_blank" href="https://sepolia.basescan.org/address/${addr}">${addr.slice(0,10)}…</a> — now in every dropdown, mint & import rows`;
+    $("newSym").value=""; $("newName").value="";
+  }catch(e){ $("logDeploy").textContent="deploy failed: "+(e.shortMessage||e.message); }
+}
+function forgetCustom(){ if(confirm("Remove all live-deployed tokens from this browser's list? (contracts stay on-chain)")){ saveCustom([]); TOKENS=BASE_TOKENS.slice(); renderTokens(); $("logDeploy").textContent="custom list cleared"; } }
+// wrap native ETH into WETH (deposit is payable — ETH goes in as msg.value)
+const WETH_ADDR="0x4200000000000000000000000000000000000006";
+async function wrapEth(){
+  if(!signer){ alert("Connect wallet first"); return; }
+  const v=$("wrapAmt").value.trim(); if(!v||isNaN(v)||Number(v)<=0){ $("logWrap").textContent="Enter an ETH amount"; return; }
+  try{
+    $("logWrap").textContent="wrapping "+v+" ETH … confirm in wallet";
+    const w=new ethers.Contract(WETH_ADDR, ["function deposit() payable"], signer);
+    const tx=await w.deposit({value: ethers.parseEther(v)});
+    $("logWrap").innerHTML=`wrapping… <a target="_blank" href="https://sepolia.basescan.org/tx/${tx.hash}">tx↗</a>`;
+    await tx.wait();
+    $("logWrap").innerHTML=`wrapped ✓ you now hold ${v} WETH — swap or pool it <a target="_blank" href="https://sepolia.basescan.org/tx/${tx.hash}">tx↗</a>`;
+    $("wrapAmt").value=""; refresh();
+  }catch(e){ $("logWrap").textContent="wrap failed: "+(e.shortMessage||e.message); }
+}
+
+function tab(t){ $("paneSwap").classList.toggle("hidden",t!=="swap"); $("panePool").classList.toggle("hidden",t!=="pool");
+  $("tabSwap").classList.toggle("on",t==="swap"); $("tabPool").classList.toggle("on",t==="pool"); refresh(); }
+
+// which pair are we looking at (depends on active tab)
+function activePair(){
+  const swap=!$("paneSwap").classList.contains("hidden");
+  return swap ? [$("fromSel").value,$("toSel").value] : [$("lpSelA").value,$("lpSelB").value];
+}
+
+async function pairInfo(a,b){
+  const f=new ethers.Contract(FACTORY,FACTORY_ABI,readP);
+  const pair=await f.getPair(a,b);
+  if(pair===ethers.ZeroAddress) return {pair:null};
+  const p=new ethers.Contract(pair,PAIR_ABI,readP);
+  const [r0,r1]=await p.getReserves(); const t0=await p.token0(); const ts=await p.totalSupply();
+  const [rA,rB]= a.toLowerCase()===t0.toLowerCase() ? [r0,r1] : [r1,r0];
+  return {pair,p,rA,rB,ts,t0};
+}
+
+async function refresh(){
+  const [a,b]=activePair();
+  try{
+    const info=await pairInfo(a,b);
+    if(!info.pair){ $("pairAddr").textContent="(no pool — add liquidity to create)"; $("reserves").textContent="—"; $("price").textContent="—"; $("kval").textContent="—"; $("share").textContent="—"; }
+    else{
+      const dA=tok(a).dec,dB=tok(b).dec;
+      const rAn=Number(ethers.formatUnits(info.rA,dA)), rBn=Number(ethers.formatUnits(info.rB,dB));
+      const bq=baseQuote(a,b); const aIsBase=bq.base.addr.toLowerCase()===a.toLowerCase();
+      const rBase=aIsBase?rAn:rBn, rQuote=aIsBase?rBn:rAn;
+      $("pairAddr").innerHTML=`<a href="https://sepolia.basescan.org/address/${info.pair}" target="_blank" style="color:var(--purple)">${info.pair.slice(0,8)}…</a> <span onclick="navigator.clipboard.writeText('${info.pair}');this.textContent='✓'" title="copy full Pair address" style="cursor:pointer">📋</span>`;
+      $("reserves").textContent=`${rBase.toLocaleString(undefined,{maximumFractionDigits:2})} ${bq.base.sym} / ${rQuote.toLocaleString(undefined,{maximumFractionDigits:2})} ${bq.quote.sym}`;
+      $("price").textContent=`1 ${bq.base.sym} = ${(rQuote/rBase).toLocaleString(undefined,{maximumFractionDigits:4})} ${bq.quote.sym}`;
+      $("kval").textContent=(rAn*rBn).toLocaleString(undefined,{maximumFractionDigits:(rAn*rBn<1000?4:0)});
+      if(me){ const bal=await info.p.balanceOf(me); const sh=info.ts>0n? Number(bal)*100/Number(info.ts):0; $("share").textContent=sh.toFixed(3)+"%"; $("lpTokBal").textContent=Number(ethers.formatUnits(bal,18)).toFixed(4); }
+    }
+  }catch(e){ /* public RPC hiccup: keep last read, don't flash an error */ }
+  refreshBalances(); quoteSwap(); setBtns();
+}
+
+async function refreshBalances(){
+  if(!me) return;
+  for(const [selId,balId] of [["fromSel","fromBal"],["toSel","toBal"],["lpSelA","lpBalA"],["lpSelB","lpBalB"]]){
+    const t=tok($(selId).value); const c=new ethers.Contract(t.addr,ERC20_ABI,readP);
+    const b=await c.balanceOf(me); $(balId).textContent=Number(ethers.formatUnits(b,t.dec)).toLocaleString(undefined,{maximumFractionDigits:4})+" "+t.sym;
+  }
+}
+
+async function connect(){
+  if(!window.ethereum){ alert("Install MetaMask."); return; }
+  await window.ethereum.request({method:"eth_requestAccounts"});
+  const cid=await window.ethereum.request({method:"eth_chainId"});
+  if(parseInt(cid,16)!==CHAIN){ try{ await window.ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:CHAIN_HEX}]}); }
+    catch(e){ await window.ethereum.request({method:"wallet_addEthereumChain",params:[{chainId:CHAIN_HEX,chainName:"Base Sepolia",nativeCurrency:{name:"ETH",symbol:"ETH",decimals:18},rpcUrls:[RPC],blockExplorerUrls:["https://sepolia.basescan.org"]}]}); } }
+  signer=await new ethers.BrowserProvider(window.ethereum).getSigner(); me=await signer.getAddress();
+  $("connect").textContent=me.slice(0,6)+"…"+me.slice(-4); $("connect").className="acct";
+  refresh();
+}
+
+function onTokenChange(){ refresh(); }
+function flip(){ const f=$("fromSel").value,t=$("toSel").value; $("fromSel").value=t; $("toSel").value=f; refresh(); }
+
+// ---- SWAP quote ----
+async function quoteSwap(){
+  const s=$("amtIn").value.trim(); $("estSwap").textContent=""; $("amtOut").value="";
+  if(!s||isNaN(s)||Number(s)<=0){ setBtns(); return; }
+  const a=$("fromSel").value,b=$("toSel").value;
+  const info=await pairInfo(a,b); if(!info.pair){ $("estSwap").textContent="no pool for this pair"; setBtns(); return; }
+  const dA=tok(a).dec,dB=tok(b).dec;
+  const r=new ethers.Contract(ROUTER,ROUTER_ABI,readP);
+  try{
+    const out=await r.getAmountOut(ethers.parseUnits(s,dA),info.rA,info.rB);
+    const outN=Number(ethers.formatUnits(out,dB)); $("amtOut").value=outN.toLocaleString(undefined,{maximumFractionDigits:4});
+    const bq=baseQuote(a,b); const aIsBase=bq.base.addr.toLowerCase()===a.toLowerCase();
+    const rAn=Number(ethers.formatUnits(info.rA,dA)), rBn=Number(ethers.formatUnits(info.rB,dB)); // decimal-adjusted reserves
+    const spotQperB=aIsBase? rBn/rAn : rAn/rBn;
+    const execQperB=aIsBase? (outN/Number(s)) : (Number(s)/outN);
+    const impact=Math.abs(execQperB/spotQperB-1)*100;
+    $("estSwap").innerHTML=`Avg. execution ≈ <b>${execQperB.toLocaleString(undefined,{maximumFractionDigits:4})}</b> ${bq.quote.sym}/${bq.base.sym} · Price impact <b>${impact.toFixed(2)}%</b>`;
+  }catch(e){}
+  setBtns();
+}
+
+// ---- LP quote (auto ratio if pool exists) ----
+async function quoteLP(side){
+  const a=$("lpSelA").value,b=$("lpSelB").value; $("estLP").textContent="";
+  const info=await pairInfo(a,b);
+  if(info.pair && info.rA>0n){
+    const r=new ethers.Contract(ROUTER,ROUTER_ABI,readP); const dA=tok(a).dec,dB=tok(b).dec;
+    try{
+      if(side==='A'&&$("lpAmtA").value){ const q=await r.quote(ethers.parseUnits($("lpAmtA").value,dA),info.rA,info.rB); $("lpAmtB").value=Number(ethers.formatUnits(q,dB)).toFixed(6); }
+      if(side==='B'&&$("lpAmtB").value){ const q=await r.quote(ethers.parseUnits($("lpAmtB").value,dB),info.rB,info.rA); $("lpAmtA").value=Number(ethers.formatUnits(q,dA)).toFixed(6); }
+      $("estLP").innerHTML=`Pool exists → auto-matched to the current ratio`;
+    }catch(e){}
+  } else { $("estLP").innerHTML=`<b>New pool</b> — you're the first LP; your deposit ratio sets the price`; }
+  setBtns();
+}
+
+// ---- allowance-aware buttons ----
+async function allowanceOf(tokenAddr,spender){ const c=new ethers.Contract(tokenAddr,ERC20_ABI,readP); return me? await c.allowance(me,spender):0n; }
+async function setBtns(){
+  const on=!!signer;
+  // swap
+  const sIn=$("amtIn").value.trim(); const sBtn=$("doSwap"),sAp=$("approveSwap");
+  if(!on){ sBtn.disabled=true; sBtn.textContent="Connect wallet"; sAp.classList.add("hidden"); }
+  else if(!sIn||isNaN(sIn)||Number(sIn)<=0){ sBtn.disabled=true; sBtn.textContent="Enter amount"; sAp.classList.add("hidden"); }
+  else{ const need=ethers.parseUnits(sIn,tok($("fromSel").value).dec); const al=await allowanceOf($("fromSel").value,ROUTER);
+    if(al<need){ sAp.classList.remove("hidden"); sAp.textContent="Approve "+tok($("fromSel").value).sym; sBtn.disabled=true; sBtn.textContent="Approve first"; }
+    else{ sAp.classList.add("hidden"); sBtn.disabled=false; sBtn.textContent="Swap"; } }
+  // add liq
+  const aBtn=$("doAdd");
+  if(!on){ aBtn.disabled=true; aBtn.textContent="Connect wallet"; $("approveLPA").classList.add("hidden"); $("approveLPB").classList.add("hidden"); }
+  else{
+    const va=$("lpAmtA").value, vb=$("lpAmtB").value;
+    if(!va||!vb||Number(va)<=0||Number(vb)<=0){ aBtn.disabled=true; aBtn.textContent="Enter amounts"; $("approveLPA").classList.add("hidden"); $("approveLPB").classList.add("hidden"); }
+    else{
+      const needA=ethers.parseUnits(va,tok($("lpSelA").value).dec), needB=ethers.parseUnits(vb,tok($("lpSelB").value).dec);
+      const alA=await allowanceOf($("lpSelA").value,ROUTER), alB=await allowanceOf($("lpSelB").value,ROUTER);
+      $("approveLPA").classList.toggle("hidden",alA>=needA); $("approveLPB").classList.toggle("hidden",alB>=needB);
+      if(alA<needA||alB<needB){ aBtn.disabled=true; aBtn.textContent="Approve first"; } else { aBtn.disabled=false; aBtn.textContent="Add liquidity"; }
+    }
+  }
+  // remove
+  const rBtn=$("doRemove");
+  if(!on){ rBtn.disabled=true; rBtn.textContent="Connect wallet"; $("approveRm").classList.add("hidden"); }
+  else{ rBtn.disabled=false; rBtn.textContent="Remove"; }
+}
+
+async function approve(which){
+  try{
+    let tokenAddr,spender=ROUTER,log=$("logSwap");
+    if(which==="swap"){ tokenAddr=$("fromSel").value; log=$("logSwap"); }
+    if(which==="lpA"){ tokenAddr=$("lpSelA").value; log=$("logLP"); }
+    if(which==="lpB"){ tokenAddr=$("lpSelB").value; log=$("logLP"); }
+    if(which==="rm"){ const info=await pairInfo($("lpSelA").value,$("lpSelB").value); tokenAddr=info.pair; log=$("logRm"); }
+    const c=new ethers.Contract(tokenAddr,ERC20_ABI,signer); log.textContent="approving…";
+    const tx=await c.approve(spender,ethers.MaxUint256); await tx.wait(); log.textContent="approved ✓"; setBtns();
+  }catch(e){ alert("approve failed: "+(e.shortMessage||e.message)); }
+}
+
+async function doSwap(){
+  try{ const a=$("fromSel").value,b=$("toSel").value; const r=new ethers.Contract(ROUTER,ROUTER_ABI,signer);
+    $("logSwap").textContent="swapping…";
+    const tx=await r.swapExactTokensForTokens(ethers.parseUnits($("amtIn").value,tok(a).dec),0,a,b,me);
+    const rc=await tx.wait(); $("logSwap").innerHTML=`swapped ✓ <a href="https://sepolia.basescan.org/tx/${rc.hash}" target="_blank">tx↗</a>`;
+    $("amtIn").value="";$("amtOut").value=""; refresh();
+  }catch(e){ $("logSwap").textContent="swap failed: "+(e.shortMessage||e.message); }
+}
+async function doAdd(){
+  try{ const a=$("lpSelA").value,b=$("lpSelB").value; if(a===b){alert("pick two different tokens");return;}
+    const r=new ethers.Contract(ROUTER,ROUTER_ABI,signer); $("logLP").textContent="adding liquidity…";
+    const tx=await r.addLiquidity(a,b,ethers.parseUnits($("lpAmtA").value,tok(a).dec),ethers.parseUnits($("lpAmtB").value,tok(b).dec),me);
+    const rc=await tx.wait(); $("logLP").innerHTML=`added ✓ you're now an LP <a href="https://sepolia.basescan.org/tx/${rc.hash}" target="_blank">tx↗</a>`;
+    $("lpAmtA").value="";$("lpAmtB").value=""; refresh();
+  }catch(e){ $("logLP").textContent="add failed: "+(e.shortMessage||e.message); }
+}
+async function doRemove(){
+  try{
+    if(!signer){ alert("Connect wallet first"); return; }
+    const a=$("lpSelA").value,b=$("lpSelB").value;
+    const info=await pairInfo(a,b); if(!info.pair){ $("logRm").textContent="No pool for this pair yet"; return; }
+    const myLP=await info.p.balanceOf(me);
+    if(myLP===0n){ $("logRm").textContent="You have no LP in this pool"; return; }
+    // empty/invalid input = remove all; otherwise remove the input amount (capped at balance)
+    const v=$("rmAmt").value.trim();
+    let amt=myLP;
+    if(v && !isNaN(v) && Number(v)>0){ const want=ethers.parseUnits(v,18); amt = want<myLP? want : myLP; }
+    const pairC=new ethers.Contract(info.pair,PAIR_ABI,signer);
+    if((await info.p.allowance(me,ROUTER))<amt){ $("logRm").textContent="Approving LP to Router…"; await (await pairC.approve(ROUTER,ethers.MaxUint256)).wait(); }
+    const r=new ethers.Contract(ROUTER,ROUTER_ABI,signer);
+    $("logRm").textContent=`Removing ${Number(ethers.formatUnits(amt,18)).toFixed(4)} LP…`;
+    const tx=await r.removeLiquidity(a,b,amt,me);
+    const rc=await tx.wait(); $("logRm").innerHTML=`removed ✓ <a href="https://sepolia.basescan.org/tx/${rc.hash}" target="_blank">tx↗</a>`;
+    $("rmAmt").value=""; refresh();
+  }catch(e){ $("logRm").textContent="remove failed: "+(e.shortMessage||e.message); }
+}
+async function mint(addr){
+  if(!signer){ alert("Connect wallet first."); return; }
+  try{ const c=new ethers.Contract(addr,ERC20_ABI,signer); const tx=await c.mint(me,ethers.parseUnits("1000",tok(addr).dec)); await tx.wait(); refresh(); }
+  catch(e){ alert("mint failed: "+(e.shortMessage||e.message)); }
+}
+
+$("connect").onclick=connect;
+if(window.ethereum){ window.ethereum.on&&window.ethereum.on("accountsChanged",()=>location.reload()); window.ethereum.on&&window.ethereum.on("chainChanged",()=>location.reload()); }
+refresh(); setInterval(refresh,10000);
+</script>
+</body>
+</html>
