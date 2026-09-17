@@ -1,7 +1,7 @@
 # Session 2 · Hands-On: Make Your Own Coin
 
 > Continues Session 1. Today: **issue your own token, move it, and see it on the chain — all by code.**
-> Slides: `slides/AI_Finance_Week1_Session2.html`. Scripts: `code/issue_asset.py`, `code/transfer_token.py`, `code/issue_asset_basesepolia.py`.
+> Slides: `slides/AI_Finance_Week1_IssueAsset.html`. Scripts: `code/issue_asset.py`, `code/transfer_token.py`, `code/issue_asset_basesepolia.py`.
 > **Testnet / local only — never real money.**
 
 ## Mental model (the one idea)

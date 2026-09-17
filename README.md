@@ -11,7 +11,8 @@ Course materials for **MB / CSE 599 · AI Finance**. We don't just *study* block
 | What | Where |
 |------|-------|
 | 🛠️ **In class: setup + hands-on (start here)** | [`SETUP.md`](SETUP.md) — install the env, then the live loop: wallet → read chain → get test ETH → send to a classmate |
-| 🖥️ **Slides (Session 1)** | [`week-01/slides/AI_Finance_Week1.html`](week-01/slides/AI_Finance_Week1.html) — open in a browser |
+| 🖥️ **Slides (Session 1)** | [`week-01/slides/AI_Finance_Week1_Introduction.html`](week-01/slides/AI_Finance_Week1_Introduction.html) — open in a browser |
+| 🖥️ **Slides (Session 2)** | [`week-01/slides/AI_Finance_Week1_IssueAsset.html`](week-01/slides/AI_Finance_Week1_IssueAsset.html) — make your own coin |
 | 📖 **Lecture notes** | [`week-01/lecture-notes.md`](week-01/lecture-notes.md) |
 | 📝 **Homework (after class)** | [`week-01/lab-exercise.md`](week-01/lab-exercise.md) |
 | 📚 **Reference pack (terms + cheatsheet)** | [`week-01/foundations-reference-pack.md`](week-01/foundations-reference-pack.md) |
@@ -30,9 +31,7 @@ Run each after `conda activate ai_finance` (see `SETUP.md`):
 | `send_asset.py` | Send native ETH: assemble → sign → broadcast → wait for inclusion. |
 | `interact_contract.py` | Deploy a demo token, then `balanceOf` (read) and `transfer` (write). |
 | `mini_amm.py` | A 20-line `x·y=k` AMM — see slippage grow with trade size. |
-| `agent_tools.py` | Wrap the ops as **agent tools behind guardrails** (per-tx cap + whitelist). |
 | `vending_machine.py` | A contract = a vending machine made of math (text demo of "no operator to trust"). |
-| `faucet_distribute.py`, `reclaim.py` | *Instructor tools:* batch-fund student wallets / sweep testnet ETH back. |
 
 ### The 5-rung ladder (how we learn every topic)
 

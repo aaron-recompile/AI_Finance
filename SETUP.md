@@ -141,14 +141,9 @@ Expect the latest **block / gas** and vitalik.eth's **ETH + USDC** on **Ethereum
 
 > ⚠️ Says **chainId 84532** or errors on USDC? You have a leftover `RPC` var → `unset RPC` (🍎) / `set RPC=` (🪟), rerun.
 
-## 3. Instructor funds everyone (teacher)
+## 3. Get funded (everyone)
 
-Teacher collects all student addresses into `students.txt` (one per line), then from the course root:
-
-```bash
-set -a && source .env.faucet && set +a
-AMOUNT_ETH=0.001 python weeks/week-01/code/faucet_distribute.py students.txt
-```
+Your instructor sends a little test ETH to your address during class — you don't run anything here. Share your address (from `gen_wallet.py`) in chat, then continue to the next step to confirm it arrived.
 
 ## 4. Check it arrived (everyone)
 
@@ -192,13 +187,6 @@ Re-run Step 4 (`check_balance.py` / explorer) for **both** addresses.
 Open in a browser (double-click, no install):
 - `../demos/vending-machine-callable.html` — a person and another contract call the same `buy()`.
 - `../demos/composability-playground.html` — a swap cascading Wallet → AMM → Token.
-
-## After class — reclaim (teacher)
-
-```bash
-set -a && source .env.faucet && set +a
-python weeks/week-01/code/reclaim.py group-keys.txt      # sweep test ETH back to the funder
-```
 
 ---
 

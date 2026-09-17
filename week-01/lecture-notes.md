@@ -149,15 +149,11 @@ A **smart contract** is a program deployed to an address. Anyone can call its fu
 >
 > **Live demo (open in a browser):** `demos/vending-machine-callable.html` — a person and another contract call the *same* `buy()`: coins in, item out, change back. Flip on "a human runs it" and it can keep the coins and give nothing. The point lands visually: a contract's "no operator to trust" is simply that **the code left no backdoor for an operator**, and that contracts can call other contracts is **composability**.
 
-### R5 Preview + This Week's Homework: Hand the Operations to an Agent
+### This Week's Homework
 
-In class you ran three things **by hand** (read / send / interact). The **homework** is to wrap them as **agent tools, add a guardrail, and let an agent do them itself** — reaching R5. We teach the local code in class and leave agent-ification for students to climb on their own:
+In class you ran three things **by hand** (read / send / interact). The **homework** (see `lab-exercise.md`) has you do the core arc yourself on Base Sepolia: prove your environment, **read** the chain, and **send** an asset to a classmate — R1→R3, no magic left standing.
 
-- `code/agent_tools.py`: wraps the three operations as "tool functions," each **write** operation gated by a **Guard (per-call cap + whitelist)**. `python3.11 agent_tools.py` shows: when the agent asks to send 5 ETH, or to pay a stranger, it's **blocked by the guard off-chain — no transaction ever goes out.**
-- `code/openclaw-agent.template.jsonc`: a template for wiring these tools into **OpenClaw** (students fill it in from the official docs).
-- **Tiered grading** (see `lab-exercise.md`): running `agent_tools.py` by hand with a screenshot earns credit; **a working OpenClaw agent screenshot earns an A+.** Hard deadline, but late turn-in is accepted.
-
-> This plants the idea of a "guardrail": **give an AI a private key, and you must give it a guardrail at the same time.** Week 5 opens this up into full "coordinator / signer separation."
+> **Where the agent comes in:** handing these operations to a self-signing agent — and the guardrails that must come with a private key — is the job of **Week 5** ("coordinator / signer separation"), not Week 1.
 
 ### Part 7: This Session Is the Map of the Whole Course (each week answers a question Week 1 raises)
 
