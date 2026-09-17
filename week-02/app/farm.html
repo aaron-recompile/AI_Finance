@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class Farm · AI Finance</title>
+<style>
+  :root{--bg:#0d0b14;--card:#161320;--card2:#1e1a2b;--border:#2c2740;--text:#f4f1fb;--muted:#9a92b3;
+    --pink:#ff2e88;--purple:#8b5cf6;--green:#4ade80;--gold:#fbbf24;--red:#ff7b72;--mono:ui-monospace,Menlo,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:radial-gradient(1200px 700px at 80% -10%,#1a1330,var(--bg));
+    color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:18px}
+  .wrap{max-width:470px;margin:0 auto}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .brand{font-weight:800;font-size:18px}.brand span{background:linear-gradient(90deg,var(--gold),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+  button{font-family:inherit;cursor:pointer;border:0;border-radius:12px;font-weight:700}
+  .btn-conn{background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff;padding:9px 15px;font-size:13.5px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px}
+  .field{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:11px 13px;margin:7px 0}
+  .field .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .field label{font-size:11.5px;color:var(--muted)}
+  .field input{background:transparent;border:0;color:var(--text);font-size:22px;font-weight:700;width:60%;outline:none}
+  .maxbtn{background:var(--card);border:1px solid var(--border);color:var(--purple);padding:5px 10px;font-size:12px;border-radius:9px}
+  .bal{font-size:11px;color:var(--muted);margin-top:3px}
+  .act{width:100%;padding:13px;font-size:15px;margin-top:6px}
+  .act.primary{background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff}
+  .act.approve{background:var(--purple);color:#fff}
+  .act.ghost{background:var(--card2);border:1px solid var(--border);color:var(--text)}
+  .act.gold{background:linear-gradient(90deg,var(--gold),#f59e0b);color:#241a00}
+  .act:disabled{opacity:.4;cursor:not-allowed}
+  .row2{display:flex;gap:7px}
+  .row2 .act{flex:1}
+  .stat{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin:5px 0}
+  .stat b{color:var(--text);font-family:var(--mono)}
+  .big{font-size:15px}.big b{color:var(--gold);font-size:17px}
+  h3{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 10px}
+  .log{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px;word-break:break-all;min-height:14px}
+  .log a{color:var(--purple)}
+  .teach{background:color-mix(in srgb,var(--gold) 9%,transparent);border:1px solid color-mix(in srgb,var(--gold) 35%,var(--border));border-radius:12px;padding:10px 13px;margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5}
+  .teach b{color:var(--gold)}
+  .mono{font-family:var(--mono)}
+  .footer{text-align:center;font-size:10.5px;color:var(--muted);margin-top:6px}
+  .footer a{color:var(--muted)}
+  .link{color:var(--purple);cursor:pointer;text-decoration:underline;font-size:11.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">🌾 <span>Class Farm</span> <span style="color:var(--muted);font-weight:500;font-size:12px">AI Finance · MasterChef</span></div>
+    <button id="connect" class="btn-conn">Connect</button>
+  </div>
+
+  <div class="card">
+    <h3>Your farm — stake LP, mine FARM</h3>
+    <div class="field" style="margin-bottom:9px"><div class="row"><label>Pool</label>
+      <select id="poolSel" onchange="onPoolChange()" style="background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:6px 10px;font-weight:700;font-size:13px;cursor:pointer">
+        <option value="0" data-lp="0xEf12cfd16d5e7903b837b2EfECBcdb1A0b5349D8">Pool 0</option>
+      </select></div></div>
+    <div class="stat"><span>LP in wallet (stakeable)</span><b id="lpWallet">—</b></div>
+    <div class="stat"><span>LP staked</span><b id="staked">—</b></div>
+    <div class="stat big"><span>Pending FARM (+1 per block, live)</span><b id="pending">—</b></div>
+    <div class="stat"><span>FARM in wallet</span><b id="farmBal">—</b></div>
+    <div style="margin-top:6px"><span class="link" onclick="watchFarm()">Import FARM to MetaMask</span></div>
+  </div>
+
+  <div class="card">
+    <h3>Stake / Withdraw</h3>
+    <div class="field">
+      <div class="row">
+        <input id="amt" type="text" inputmode="decimal" placeholder="0.0">
+        <button class="maxbtn" onclick="setMax()">MAX</button>
+      </div>
+      <div class="bal">Amount (leave empty = withdraw all)</div>
+    </div>
+    <button id="btnApprove" class="act approve hidden" onclick="doApprove()">① Approve LP to the farm</button>
+    <button id="btnStake" class="act primary" onclick="doStake()">② Stake LP (deposit)</button>
+    <div class="row2">
+      <button class="act gold" onclick="doHarvest()">Harvest FARM (keep stake)</button>
+      <button class="act ghost" onclick="doWithdraw()">Withdraw LP (+ harvest)</button>
+    </div>
+    <button class="act ghost" style="margin-top:7px;color:var(--red)" onclick="doEmergency()">emergencyWithdraw (forfeit rewards)</button>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div class="card" id="adminCard" hidden style="border-color:color-mix(in srgb,var(--gold) 40%,var(--border))">
+    <h3 style="color:var(--gold)">⚙︎ Owner only — add a farm pool</h3>
+    <div class="field"><div class="row"><label>LP (Pair) address</label></div><div class="row"><input id="newLp" type="text" placeholder="0x… the MOON/mUSDT Pair"></div></div>
+    <div class="field"><div class="row"><label>Alloc points (weight, e.g. 100)</label></div><div class="row"><input id="newAlloc" type="text" inputmode="numeric" placeholder="100"></div></div>
+    <button class="act gold" onclick="addFarmPool()">Add farm pool</button>
+    <div class="log" id="logAdmin"></div>
+    <div style="font-size:11.5px;color:var(--muted);margin-top:6px">Only the MasterChef owner sees this. Get the Pair address from v2.html (the pool link) after you add liquidity.</div>
+  </div>
+
+  <div class="teach">
+    💡 <b>Tower B, layer 1</b>: LP token → stake into MasterChef → mine FARM.<br>
+    · <b>"Harvest FARM (keep stake)" = deposit(0)</b>: collect rewards without touching your stake. Then <b>go to v2.html and sell FARM for stablecoin</b> = <b>farm-and-dump (take profit)</b>.<br>
+    · <b>Keep compounding FARM without cashing out</b>: FARM is a high-inflation token minted from thin air — when others dump, you're the exit liquidity.<br>
+    · <b>Only this farm can mint FARM</b> (minter = MasterChef) — that's the emissions faucet.
+  </div>
+
+  <div class="footer">
+    <b>MB/CSE 599 · AI Finance</b> — teaching demo<br>
+    FARM <a id="scanFarm" target="_blank">—</a> · MasterChef <a id="scanChef" target="_blank">—</a> · LP <a id="scanLp" target="_blank">—</a>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
+<script>
+const RPC="https://base-sepolia-rpc.publicnode.com", CHAIN=84532, CHAIN_HEX="0x14a34";
+const FARM="0x026455e72a9dF06Fa4585F694d42E4cED13C01cd";
+const CHEF="0xD13Dd4DE9dA5D1C862FEF8a08148e117507F7893";
+const DEC=18;
+let PID=0, LP="0xEf12cfd16d5e7903b837b2EfECBcdb1A0b5349D8"; // current pool selection (set by dropdown)
+
+const ERC20_ABI=["function balanceOf(address) view returns (uint256)","function allowance(address,address) view returns (uint256)","function approve(address,uint256) returns (bool)","function symbol() view returns (string)"];
+const CHEF_ABI=[
+  "function userInfo(uint256,address) view returns (uint256 amount,uint256 rewardDebt)",
+  "function pendingFarm(uint256,address) view returns (uint256)",
+  "function deposit(uint256,uint256)",
+  "function withdraw(uint256,uint256)",
+  "function emergencyWithdraw(uint256)",
+  "function poolLength() view returns (uint256)",
+  "function poolInfo(uint256) view returns (address lpToken,uint256 allocPoint,uint256 lastRewardBlock,uint256 accFarmPerShare)",
+  "function owner() view returns (address)",
+  "function add(uint256,address)"
+];
+const PAIR_ABI=["function token0() view returns (address)","function token1() view returns (address)"];
+const readP=new ethers.JsonRpcProvider(RPC);
+let signer=null, me=null;
+const $=id=>document.getElementById(id);
+const fmt=(v)=>Number(ethers.formatUnits(v,DEC)).toLocaleString(undefined,{maximumFractionDigits:6});
+function log(t){$("log").innerHTML=t;}
+function txlink(h){return `<a target="_blank" href="https://sepolia.basescan.org/tx/${h}">${h.slice(0,10)}…</a>`;}
+
+$("scanFarm").href="https://sepolia.basescan.org/address/"+FARM; $("scanFarm").textContent=FARM.slice(0,8)+"…";
+$("scanChef").href="https://sepolia.basescan.org/address/"+CHEF; $("scanChef").textContent=CHEF.slice(0,8)+"…";
+$("scanLp").href="https://sepolia.basescan.org/address/"+LP; $("scanLp").textContent=LP.slice(0,8)+"…";
+
+async function connect(){
+  if(!window.ethereum){ alert("MetaMask required"); return; }
+  const cid=await window.ethereum.request({method:"eth_chainId"});
+  if(parseInt(cid,16)!==CHAIN){ try{ await window.ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:CHAIN_HEX}]}); }
+    catch(e){ await window.ethereum.request({method:"wallet_addEthereumChain",params:[{chainId:CHAIN_HEX,chainName:"Base Sepolia",nativeCurrency:{name:"ETH",symbol:"ETH",decimals:18},rpcUrls:[RPC],blockExplorerUrls:["https://sepolia.basescan.org"]}]}); } }
+  signer=await new ethers.BrowserProvider(window.ethereum).getSigner(); me=await signer.getAddress();
+  $("connect").textContent=me.slice(0,6)+"…"+me.slice(-4);
+  await loadPools(); await checkOwner(); refresh();
+}
+$("connect").onclick=connect;
+
+// build a nice "SYM0/SYM1" label for a Pair LP token
+async function pairLabel(lpAddr){
+  try{
+    const p=new ethers.Contract(lpAddr,PAIR_ABI,readP);
+    const [t0,t1]=await Promise.all([p.token0(),p.token1()]);
+    const s0=await new ethers.Contract(t0,ERC20_ABI,readP).symbol();
+    const s1=await new ethers.Contract(t1,ERC20_ABI,readP).symbol();
+    return `${s0}/${s1}`;
+  }catch(e){ return lpAddr.slice(0,8)+"…"; }
+}
+// read every pool from MasterChef and fill the dropdown
+async function loadPools(){
+  const chef=new ethers.Contract(CHEF,CHEF_ABI,readP);
+  const n=Number(await chef.poolLength());
+  const opts=[];
+  for(let i=0;i<n;i++){
+    const info=await chef.poolInfo(i);
+    const label=await pairLabel(info.lpToken);
+    opts.push(`<option value="${i}" data-lp="${info.lpToken}">Pool ${i} · ${label}</option>`);
+  }
+  const sel=$("poolSel"); const cur=sel.value; sel.innerHTML=opts.join("");
+  sel.value = (cur && Number(cur)<n)? cur : "0";
+  onPoolChange();
+}
+function onPoolChange(){
+  const sel=$("poolSel"); const opt=sel.options[sel.selectedIndex];
+  PID=Number(sel.value); LP=opt.getAttribute("data-lp");
+  refresh();
+}
+// show the owner-only "Add farm pool" card if the connected wallet owns MasterChef
+async function checkOwner(){
+  try{
+    const owner=await new ethers.Contract(CHEF,CHEF_ABI,readP).owner();
+    $("adminCard").hidden = !(me && owner.toLowerCase()===me.toLowerCase());
+  }catch(e){ $("adminCard").hidden=true; }
+}
+// owner adds a new farm pool for an LP token
+async function addFarmPool(){
+  try{
+    const lpAddr=$("newLp").value.trim(); const alloc=$("newAlloc").value.trim()||"100";
+    if(!ethers.isAddress(lpAddr)){ $("logAdmin").textContent="Enter a valid LP (Pair) address"; return; }
+    $("logAdmin").textContent="adding pool… confirm in wallet";
+    const chef=new ethers.Contract(CHEF,CHEF_ABI,signer);
+    const tx=await chef.add(BigInt(alloc), lpAddr); await tx.wait();
+    $("logAdmin").innerHTML=`pool added ✓ students can now stake this LP <a target="_blank" href="https://sepolia.basescan.org/tx/${tx.hash}">tx↗</a>`;
+    $("newLp").value=""; await loadPools();
+  }catch(e){ $("logAdmin").textContent="add failed: "+(e.shortMessage||e.message); }
+}
+
+let lastAllowance=0n, lastStaked=0n, lastWallet=0n;
+async function refresh(){
+  if(!me) return;
+  try{
+    const lp=new ethers.Contract(LP,ERC20_ABI,readP);
+    const chef=new ethers.Contract(CHEF,CHEF_ABI,readP);
+    const farm=new ethers.Contract(FARM,ERC20_ABI,readP);
+    const [w,info,pend,fb,al]=await Promise.all([
+      lp.balanceOf(me), chef.userInfo(PID,me), chef.pendingFarm(PID,me), farm.balanceOf(me), lp.allowance(me,CHEF)
+    ]);
+    lastAllowance=al; lastStaked=info.amount; lastWallet=w;
+    $("lpWallet").textContent=fmt(w)+" LP";
+    $("staked").textContent=fmt(info.amount)+" LP";
+    $("pending").innerHTML="<b>"+fmt(pend)+"</b> FARM";
+    $("farmBal").textContent=fmt(fb)+" FARM";
+    // show Approve button only when wallet has LP and it isn't approved yet
+    const needApprove = w>0n && al < w;
+    $("btnApprove").classList.toggle("hidden", !needApprove);
+  }catch(e){ /* silent, retry next tick */ }
+}
+setInterval(refresh, 3000); // refresh every 3s; pending ticks up block by block
+
+function setMax(){ $("amt").value = ethers.formatUnits(lastWallet, DEC); } // fill in all stakeable LP in wallet
+
+async function doApprove(){
+  try{ log("Approving…");
+    const lp=new ethers.Contract(LP,ERC20_ABI,signer);
+    const tx=await lp.approve(CHEF, ethers.MaxUint256); log("approve "+txlink(tx.hash)); await tx.wait();
+    log("Approved ✅ you can stake now"); refresh();
+  }catch(e){ log("Approve failed: "+(e.shortMessage||e.message)); }
+}
+async function doStake(){
+  try{
+    const v=$("amt").value.trim(); if(!v){ log("Enter an amount to stake"); return; }
+    const amt=ethers.parseUnits(v,DEC);
+    if(lastAllowance<amt){ log("Approve LP to the farm first (①)"); $("btnApprove").classList.remove("hidden"); return; }
+    log("Staking…");
+    const chef=new ethers.Contract(CHEF,CHEF_ABI,signer);
+    const tx=await chef.deposit(PID,amt); log("deposit "+txlink(tx.hash)); await tx.wait();
+    log("Staked ✅ mining FARM per block"); $("amt").value=""; refresh();
+  }catch(e){ log("Stake failed: "+(e.shortMessage||e.message)); }
+}
+async function doHarvest(){
+  try{ log("Harvesting (deposit 0)…");
+    const chef=new ethers.Contract(CHEF,CHEF_ABI,signer);
+    const tx=await chef.deposit(PID,0n); log("harvest "+txlink(tx.hash)); await tx.wait();
+    log("Harvested ✅ FARM is in your wallet. Want to take profit? Sell FARM on v2.html"); refresh();
+  }catch(e){ log("Harvest failed: "+(e.shortMessage||e.message)); }
+}
+async function doWithdraw(){
+  try{
+    const v=$("amt").value.trim();
+    const amt = v ? ethers.parseUnits(v,DEC) : lastStaked; // empty = withdraw all
+    if(amt===0n){ log("Nothing staked to withdraw"); return; }
+    log("Withdrawing…");
+    const chef=new ethers.Contract(CHEF,CHEF_ABI,signer);
+    const tx=await chef.withdraw(PID,amt); log("withdraw "+txlink(tx.hash)); await tx.wait();
+    log("Withdrawn ✅ LP returned + FARM harvested"); $("amt").value=""; refresh();
+  }catch(e){ log("Withdraw failed: "+(e.shortMessage||e.message)); }
+}
+async function doEmergency(){
+  if(!confirm("Emergency withdraw forfeits all pending FARM and returns only your LP. Continue?")) return;
+  try{ log("Emergency withdrawing…");
+    const chef=new ethers.Contract(CHEF,CHEF_ABI,signer);
+    const tx=await chef.emergencyWithdraw(PID); log("emergency "+txlink(tx.hash)); await tx.wait();
+    log("LP returned (rewards forfeited) ✅"); refresh();
+  }catch(e){ log("Failed: "+(e.shortMessage||e.message)); }
+}
+async function watchFarm(){
+  try{ await window.ethereum.request({method:"wallet_watchAsset",params:{type:"ERC20",options:{address:FARM,symbol:"FARM",decimals:18}}}); }
+  catch(e){}
+}
+</script>
+</body>
+</html>
