@@ -39,6 +39,20 @@ Run each after `conda activate ai_finance` (see `SETUP.md`):
 
 ---
 
+## Repository layout
+
+Each week is one folder with the same shape — look in the same place every week:
+
+```
+week-NN/
+  slides/    decks, named AI_Finance_Week<N>_<Topic>.html
+  demos/     open-in-browser interactive .html
+  code/      runnable scripts and Foundry projects
+  *.md       lecture-notes · lab-exercise · hands-on · reference pack
+```
+
+---
+
 ## Golden rule
 
 **Testnets only. Never put real money behind a demo key.** A private key is everything — never paste it into a website, a chat, or a shared file.
