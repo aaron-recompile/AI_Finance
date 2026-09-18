@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week2 · AMM swap (interactive)</title>
+<style>
+  :root{
+    --bg:#0d1117;--panel:#161b22;--panel2:#1c2430;--border:#2b3444;
+    --text:#e6edf3;--muted:#9aa7b4;--accent:#58a6ff;--accent2:#7ee787;
+    --danger:#ff7b72;--warn:#f2cc60;--gold:#e3b341;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);line-height:1.6;padding:0 0 70px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  .wrap{max-width:860px;margin:0 auto;padding:0 20px}
+  header{padding:34px 0 8px;text-align:center}
+  h1{font-size:24px;margin:0 0 6px}
+  .sub{color:var(--muted);font-size:14px}
+  h2{font-size:18px;margin:30px 0 6px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin:16px 0}
+  code{font-family:var(--mono)}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  label{font-size:14px;color:var(--muted)}
+  .big{font-family:var(--mono);font-size:15px;font-weight:700}
+  .stat{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+  .b{background:#0a0e14;border:1px solid var(--border);border-radius:9px;padding:8px 13px;font-family:var(--mono);font-size:13px}
+  .b b{font-weight:700}
+  .ok{color:var(--accent2)}.warnc{color:var(--warn)}.bad{color:var(--danger)}
+  .callout{border-left:3px solid var(--accent);background:#101722;padding:11px 15px;border-radius:0 8px 8px 0;margin:12px 0;font-size:13.5px}
+  .callout.gold{border-color:var(--gold);background:#1a160c}
+  .fig{display:flex;justify-content:center;margin:10px 0}
+  table{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px}
+  th,td{padding:6px 10px;border-bottom:1px solid var(--border);text-align:left}
+  th{color:var(--accent);font-size:11.5px;text-transform:uppercase}
+  footer{color:var(--muted);font-size:12px;text-align:center;margin-top:40px;padding-top:18px;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <h1>AMM interactive: drag it, watch the price slip</h1>
+  <div class="sub">Pool: 100 ETH / 200,000 USDC (price 2000, 0.3% fee). Same numbers as <code>amm.py</code> / SimpleAMM.</div>
+</header>
+
+<div class="wrap">
+
+<!-- swap -->
+<h2>① Swap: the bigger the trade, the worse the price (slippage)</h2>
+<div class="card">
+  <label>Sell ETH: <b class="big" id="dxLbl">5</b> ETH</label>
+  <input type="range" min="0.1" max="50" step="0.1" value="5" id="dx" oninput="calc()">
+  <div class="stat">
+    <div class="b">you get <b id="out" class="ok">—</b> USDC</div>
+    <div class="b">avg. execution <b id="avg">—</b></div>
+    <div class="b">vs 2000 <b id="slip">—</b></div>
+    <div class="b">spot after <b id="spot">—</b></div>
+    <div class="b">k <b id="k">—</b></div>
+  </div>
+
+  <div class="fig">
+    <svg viewBox="0 0 640 300" style="width:100%;max-width:640px" font-family="ui-monospace,Menlo,monospace">
+      <line x1="60" y1="20" x2="60" y2="270" stroke="var(--border)"/>
+      <line x1="60" y1="270" x2="610" y2="270" stroke="var(--border)"/>
+      <text x="335" y="292" fill="var(--muted)" font-size="11" text-anchor="middle">ETH in pool →</text>
+      <text x="20" y="150" fill="var(--muted)" font-size="11" text-anchor="middle" transform="rotate(-90 20 150)">USDC in pool</text>
+      <path id="curve" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+      <circle id="startDot" r="5" fill="var(--muted)"/>
+      <text id="startTxt" fill="var(--muted)" font-size="11">start (2000)</text>
+      <circle id="nowDot" r="6.5" fill="var(--warn)"/>
+      <text id="nowTxt" fill="var(--warn)" font-size="12" font-weight="700"></text>
+      <line id="drop" stroke="var(--border)" stroke-dasharray="4 4"/>
+    </svg>
+  </div>
+  <div class="callout"><b>Slippage = how far you slid along the curve.</b> A small order barely moves it (price ≈ 2000); a big order stuffs your ETH into the pool and pulls USDC out, so your average price keeps getting worse. <b>The number on the screen ≠ a big order's fill price — the curve is.</b></div>
+</div>
+
+<!-- IL -->
+<h2>② Impermanent loss: the other side of being an LP</h2>
+<div class="card">
+  <p style="font-size:13.5px;color:var(--muted);margin:4px 0">Think of an AMM as a "self-rebalancing vending machine": whenever the price moves, arbitrageurs show up and <b style="color:var(--text)">always drag you to the wrong side — selling the winner, buying the loser</b>. Drag to see it:</p>
+  <label>ETH price change: <b class="big" id="rLbl">×1.0</b> (now <b id="pNow" class="big">2000</b>)</label>
+  <input type="range" min="0.25" max="4" step="0.05" value="1" id="r" oninput="ilCalc()">
+  <div class="stat">
+    <div class="b">impermanent loss <b id="il" class="bad">0%</b></div>
+    <div class="b">ETH in pool: 100 → <b id="poolEth">100</b></div>
+    <div class="b">vs just HODLing <b id="verdict">even</b></div>
+  </div>
+  <div class="callout gold"><b>"You'd have been worth more doing nothing at all" — that gap is impermanent loss.</b> It's symmetric (2× and ½ lose the same); it vanishes when the price returns to the start (hence "impermanent").<br>An LP's real P&amp;L = <b class="ok">fees</b> − <b class="bad">impermanent loss</b>: high volume + small moves → LP wins; quiet + a big move → LP loses.</div>
+  <table>
+    <tr><th>price ratio r</th><th>impermanent loss</th><th>note</th></tr>
+    <tr><td>±25% (0.8 / 1.25)</td><td>−0.62%</td><td>small move, small loss</td></tr>
+    <tr><td>2× or ½ (2.0 / 0.5)</td><td><b>−5.72%</b></td><td>up 2× and down ½ lose the same (symmetric)</td></tr>
+    <tr><td>4× or ¼</td><td>−20%</td><td>big move, big loss</td></tr>
+    <tr><td>no move (r=1)</td><td>0%</td><td>vanishes when price returns</td></tr>
+  </table>
+</div>
+
+<footer>Week 2 · AMM interactive · companion deck AI_Finance_Week2_AMM.html</footer>
+</div>
+
+<script>
+const X0=100, Y0=200000, K=X0*Y0;          // pool: 100 ETH / 200,000 USDC
+function fmt(n,d=1){return (+n).toLocaleString('en-US',{maximumFractionDigits:d});}
+
+// ---- swap simulator ----
+// plot area for the curve
+const PL={x0:60,x1:610,y0:20,y1:270}, EMIN=80, EMAX=200, UMAX=350000;
+function px(eth){return PL.x0 + (eth-60)/(EMAX-60)*(PL.x1-PL.x0);}   // x-axis 60..200 ETH
+function py(usdc){return PL.y1 - usdc/UMAX*(PL.y1-PL.y0);}
+function buildCurve(){
+  let d="";
+  for(let e=60;e<=EMAX;e+=5){ d += (e===60?"M":"L")+px(e).toFixed(1)+","+py(K/e).toFixed(1)+" "; }
+  document.getElementById('curve').setAttribute('d', d);
+  // start dot at (100, 200000)
+  const sx=px(100), sy=py(200000);
+  document.getElementById('startDot').setAttribute('cx',sx);
+  document.getElementById('startDot').setAttribute('cy',sy);
+  document.getElementById('startTxt').setAttribute('x',sx-92);
+  document.getElementById('startTxt').setAttribute('y',sy-8);
+}
+function calc(){
+  const dx=+document.getElementById('dx').value;
+  document.getElementById('dxLbl').textContent=fmt(dx);
+  const inFee=dx*997/1000;
+  const out=Y0*inFee/(X0+inFee);
+  const avg=out/dx;
+  const spot=(Y0-out)/(X0+dx);
+  const slip=(avg/2000-1)*100;
+  document.getElementById('out').textContent=fmt(out);
+  document.getElementById('avg').textContent=fmt(avg);
+  const s=document.getElementById('slip');
+  s.textContent=fmt(slip,1)+'%';
+  s.className = slip>-1?'ok':(slip>-8?'warnc':'bad');
+  document.getElementById('spot').textContent=fmt(spot);
+  document.getElementById('k').textContent=fmt(K/1e6,1)+'M → '+fmt((X0+dx)*(Y0-out)/1e6,1)+'M';
+  // move dot along curve to (X0+dx, Y0-out)
+  const nx=px(Math.min(X0+dx,EMAX)), ny=py(Y0-out);
+  const nd=document.getElementById('nowDot'); nd.setAttribute('cx',nx); nd.setAttribute('cy',ny);
+  const nt=document.getElementById('nowTxt'); nt.setAttribute('x',nx+8); nt.setAttribute('y',ny+4);
+  nt.textContent='sell '+fmt(dx)+' → '+fmt(avg)+'';
+  const dr=document.getElementById('drop');
+  dr.setAttribute('x1',nx);dr.setAttribute('y1',ny);dr.setAttribute('x2',nx);dr.setAttribute('y2',PL.y1);
+}
+
+// ---- impermanent loss ----
+function ilCalc(){
+  const r=+document.getElementById('r').value;
+  document.getElementById('rLbl').textContent='×'+fmt(r,2);
+  document.getElementById('pNow').textContent=fmt(2000*r,0);
+  const il=(2*Math.sqrt(r)/(1+r)-1)*100;      // closed form
+  document.getElementById('il').textContent=fmt(il,2)+'%';
+  const poolEth=100/Math.sqrt(r);              // x = 100/sqrt(r)
+  document.getElementById('poolEth').textContent=fmt(poolEth,1);
+  const v=document.getElementById('verdict');
+  if(Math.abs(r-1)<0.001){ v.textContent='even'; v.className=''; }
+  else { v.textContent='HODL wins (AMM −'+fmt(Math.abs(il),2)+'%)'; v.className='bad'; }
+}
+
+buildCurve(); calc(); ilCalc();
+</script>
+</body>
+</html>
