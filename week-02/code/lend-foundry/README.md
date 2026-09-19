@@ -1,63 +1,88 @@
-# SimpleLend —— 你自己的链上当铺(借贷 + 清算)
+# SimpleLend — Your Own On-Chain Pawnshop (lending + liquidation)
 
-第 2 周第 4 课的旗舰合约。和 `amm-foundry` 平行:一个**真能部署、真能清算**的最小借贷市场。
-对照 `../lend.py`(Python 直觉版)—— 同一套"健康因子"数学,这里搬上链。
+The Week 2 / Session 4 flagship contract. A sibling to `amm-foundry`: a minimal
+lending market that **really deploys and really liquidates**. Compare it with
+`../lend.py` (the off-chain, pure-Python intuition version) — same "health factor"
+math, but here it lives on-chain as a smart contract.
 
-## 合约在讲什么
+## Files
 
-- `deposit / withdraw`:存、取抵押品(WETH)。
-- `borrow / repay`:借、还债(USDC)。借完/取完都要求 **HF ≥ 1**。
-- `healthFactor(user)` = 抵押品价值 × 清算阈值(80%) ÷ 债务。`>1` 安全,`<1` 可被清算。
-- `setPrice`:**教学用手动喂价**(模拟预言机),好在课堂上"当场把 ETH 价砍下去"制造清算。
-- `liquidate(user)`:HF<1 时,清算人还清其债务,按 **110% 折价**端走抵押品(那 10% 是清算奖励)。
+| File | What it is |
+|------|------------|
+| `src/SimpleLend.sol` | The lending market: deposit/withdraw collateral, borrow/repay, health factor, liquidation |
+| `src/MockERC20.sol` | A minimal teaching ERC-20 (freely mintable, used for WETH collateral and USDC debt) |
+| `test/SimpleLend.t.sol` | Acceptance tests: HF math, over-borrow rejected, price drop makes it liquidatable, liquidation seizes collateral, healthy positions can't be liquidated |
+| `script/DeployLend.s.sol` | Deploy to a chain + set up a starting position |
 
-## 跑测试
+## What the contract teaches
+
+- `deposit / withdraw` — put in / take out collateral (WETH).
+- `borrow / repay` — take on / pay back debt (USDC). Both borrowing and withdrawing require **HF ≥ 1**.
+- `healthFactor(user)` = collateral value × liquidation threshold (80%) ÷ debt. `>1` is safe, `<1` can be liquidated.
+- `setPrice` — a **manual teaching oracle**, so in class you can "cut the ETH price on the spot" to manufacture a liquidation.
+- `liquidate(user)` — when HF < 1, a liquidator repays the debt and seizes the collateral at a **110% discount** (that 10% is the liquidation bonus).
+
+## Run the tests (no network, no private key)
 
 ```bash
 export PATH="$HOME/.foundry/bin:$PATH"
 forge test -vv
 ```
-应看到 **5 passed**:存借算 HF、借太多被拒、价跌变可清算、清算端走抵押品、健康仓位不能清算。
 
-## 本地 anvil 部署 + 当场制造一次清算
+Expected: **5 passed** — HF on deposit/borrow, over-borrow rejected, price drop turns
+the position liquidatable, liquidation seizes the collateral, and a healthy position
+cannot be liquidated. This is the baseline your assignment must keep green.
+
+## Deploy locally on anvil + manufacture a liquidation
 
 ```bash
-# 终端 A:anvil(开着别关)
+# Terminal A: anvil (leave it running)
 anvil
 
-# 终端 B:
+# Terminal B:
 export PATH="$HOME/.foundry/bin:$PATH"
-export PRIVATE_KEY=0xac0974...ff80  # Anvil test key #0 (public, local only)
+export PRIVATE_KEY=0xac0974...ff80   # Anvil test key #0 (public, local only)
 forge script script/DeployLend.s.sol --rpc-url http://localhost:8545 --broadcast
-# 记下打印的 WETH / USDC / LEND 地址
+# note the printed WETH / USDC / LEND addresses
 ```
 
-然后用 `cast` 走一遍"开仓 → 砍价 → 看 HF 跌破 1":
+Then use `cast` to walk through "open a position → cut the price → watch HF fall below 1":
 
 ```bash
-L=<LEND 地址>;  W=<WETH 地址>;  RPC=http://localhost:8545
+L=<LEND address>;  W=<WETH address>;  RPC=http://localhost:8545
 
-# 存 1 WETH、借 1000 USDC
+# deposit 1 WETH, borrow 1000 USDC
 cast send $W "approve(address,uint256)" $L 1000000000000000000 --rpc-url $RPC --private-key $PRIVATE_KEY
 cast send $L "deposit(uint256)" 1000000000000000000            --rpc-url $RPC --private-key $PRIVATE_KEY
 cast send $L "borrow(uint256)"  1000000000000000000000         --rpc-url $RPC --private-key $PRIVATE_KEY
 
-# 读健康因子(应 1.6e18 = 1.6)
-cast call $L "healthFactor(address)(uint256)" <你的地址> --rpc-url $RPC
+# read the health factor (should be 1.6e18 = 1.6)
+cast call $L "healthFactor(address)(uint256)" <your address> --rpc-url $RPC
 
-# 预言机砍价:2000 → 1200
+# oracle cuts the price: 2000 -> 1200
 cast send $L "setPrice(uint256)" 1200000000000000000000 --rpc-url $RPC --private-key $PRIVATE_KEY
 
-# 再读 HF(应 0.96e18 = 0.96 < 1 → 可清算)
-cast call $L "healthFactor(address)(uint256)" <你的地址> --rpc-url $RPC
+# read HF again (should be 0.96e18 = 0.96 < 1 -> liquidatable)
+cast call $L "healthFactor(address)(uint256)" <your address> --rpc-url $RPC
 ```
 
-> `<你的地址>` = anvil 账户0 `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`。
-> HF 从 1.6 掉到 0.96,就是"被清算"发生前的那一刻。收工 `pkill anvil`。
+> `<your address>` = anvil account 0 `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`.
+> HF dropping from 1.6 to 0.96 is the exact moment right before "you get liquidated".
+> When done: `pkill anvil`.
 
-## 依赖
+## Deploy to a testnet (Base Sepolia)
 
-本项目用 forge-std。若 clone 后 `lib/forge-std` 缺失,跑一次:
+```bash
+export PRIVATE_KEY=0xYourTestnetKey     # an account that holds some Base Sepolia gas
+forge script script/DeployLend.s.sol --rpc-url base-sepolia --broadcast
+```
+
+The `base-sepolia` RPC alias is defined in `foundry.toml`.
+
+## Dependencies
+
+This project uses `forge-std`. If `lib/forge-std` is missing after cloning, run:
+
 ```bash
 forge install foundry-rs/forge-std
 ```
