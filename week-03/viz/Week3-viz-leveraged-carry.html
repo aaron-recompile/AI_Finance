@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leveraged carry · borrow low, lend high</title>
+<style>
+  :root{--bg:#0d0b14;--card:#161320;--card2:#1e1a2b;--border:#2c2740;--text:#f4f1fb;--muted:#9a92b3;
+    --green:#4ade80;--red:#ff7b72;--gold:#fbbf24;--purple:#8b5cf6;--blue:#60a5fa;--pink:#ff2e88;--mono:ui-monospace,Menlo,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:radial-gradient(1200px 700px at 80% -10%,#1a1330,var(--bg));
+    color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:16px}
+  .wrap{max-width:920px;margin:0 auto}
+  h1{font-size:21px;margin:0 0 3px}h1 span{background:linear-gradient(90deg,var(--pink),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:13.5px;margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:14px;margin-bottom:12px}
+  .top{display:flex;flex-wrap:wrap;gap:10px}
+  .stat{background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:8px 12px;flex:1;min-width:105px}
+  .stat .t{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  .stat .v{font-family:var(--mono);font-weight:800;font-size:17px;margin-top:2px}
+  .flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--muted);margin:6px 0 2px}
+  .flow .s{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:6px 10px}
+  .flow .s b{color:var(--text)} .flow .a{color:var(--pink);font-weight:800}
+  .mkts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:620px){.mkts{grid-template-columns:1fr}}
+  .mkt{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px}
+  .mkt h3{margin:0 0 6px;font-size:14px}
+  .rate{font-family:var(--mono);font-weight:800;font-size:24px}
+  .slbl{font-size:10.5px;color:var(--muted);margin-top:8px;display:flex;justify-content:space-between}
+  input[type=range]{width:100%;accent-color:var(--purple);height:20px}
+  .row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;margin:5px 0}.row b{color:var(--text)}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+  button{font-family:inherit;font-weight:700;border:none;border-radius:9px;padding:9px 14px;cursor:pointer;font-size:12.5px}
+  .run{background:linear-gradient(90deg,var(--green),#22c55e);color:#04210f}
+  .run.paused{background:var(--gold);color:#3a2c00}
+  .open{background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff}
+  .close{background:linear-gradient(90deg,var(--green),#22c55e);color:#04210f}
+  .rst{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+  .danger{animation:pulse .7s infinite}
+  .amtwrap{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+  .teach{background:color-mix(in srgb,var(--gold) 9%,transparent);border:1px solid color-mix(in srgb,var(--gold) 32%,var(--border));border-radius:11px;padding:11px 14px;font-size:12.5px;color:var(--muted);line-height:1.55}
+  .teach b{color:var(--gold)}
+  svg{width:100%;height:auto;display:block}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;margin:4px 0}
+  .legend .k{display:flex;align-items:center;gap:5px;font-family:var(--mono)}
+  .dot{width:12px;height:3px;border-radius:2px;display:inline-block}
+  .foot{text-align:center;font-size:11px;color:var(--muted);margin-top:16px}
+  .liq{display:none;background:color-mix(in srgb,var(--red) 16%,transparent);border:1px solid var(--red);border-radius:11px;padding:10px 14px;font-weight:800;color:var(--red);margin-top:10px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Leveraged <span>carry</span> — borrow low, lend high</h1>
+  <div class="sub">Post equity → borrow cheap at the Low venue → supply it dear at the High venue → pocket the spread, <b style="color:var(--gold)">multiplied by leverage</b>. Then watch leverage cut the other way.</div>
+
+  <div class="card">
+    <div class="top">
+      <div class="stat"><div class="t">Equity (yours)</div><div class="v" id="eq" style="color:var(--gold)">—</div></div>
+      <div class="stat"><div class="t">Leverage</div><div class="v" id="lev" style="color:var(--pink)">—</div></div>
+      <div class="stat"><div class="t">Carry spread</div><div class="v" id="spread" style="color:var(--green)">—</div></div>
+      <div class="stat"><div class="t">Your ROE</div><div class="v" id="roe" style="color:var(--green)">—</div></div>
+      <div class="stat"><div class="t">Health factor</div><div class="v" id="hf" style="color:var(--green)">—</div></div>
+      <div class="stat"><div class="t">Time</div><div class="v" id="days">0 d</div></div>
+    </div>
+    <div class="flow">
+      <span class="s">equity <b id="fE">10,000</b></span><span class="a">→ collateral →</span>
+      <span class="s">borrow <b id="fD">—</b> @ <b id="fbL">—</b> (Low)</span><span class="a">→ supply →</span>
+      <span class="s">position <b id="fP">—</b> @ <b id="fsH">—</b> (High)</span>
+    </div>
+    <div class="controls">
+      <button class="run paused" id="runBtn" onclick="toggle()">▶ Run time</button>
+      <div class="amtwrap">speed <input type="range" id="speed" min="1" max="60" step="1" value="20" style="width:110px" oninput="spL()"><b id="spLbl">20</b> d/s</div>
+      <div class="amtwrap">leverage <input type="range" id="levset" min="1" max="6" step="0.5" value="3" style="width:130px" oninput="levL()"><b id="levLbl">3.0×</b></div>
+      <button class="open" onclick="openPos()">⚡ Open carry</button>
+      <button class="close" id="closeBtn" onclick="closePos()">✓ Close position</button>
+      <button class="rst" onclick="reset()">Reset</button>
+    </div>
+    <div class="liq" id="liqBanner">☠ LIQUIDATED — the keeper beat you. HF hit 1, your equity is wiped. Leverage cut the other way.</div>
+    <div class="liq" id="okBanner" style="background:color-mix(in srgb,var(--green) 16%,transparent);border-color:var(--green);color:var(--green)">✓ CLOSED IN TIME — you unwound before the keeper. You walked away with your equity.</div>
+  </div>
+
+  <div class="mkts">
+    <div class="mkt">
+      <h3>① Borrow here — <span style="color:var(--blue)">Low venue</span></h3>
+      <div class="rate" style="color:var(--red)"><span id="bL">5.00%</span> <span style="font-size:11px;color:var(--muted);font-weight:600">borrow APR</span></div>
+      <div class="slbl"><span>borrow rate (drag = market moves)</span></div>
+      <input type="range" id="bLs" min="1" max="30" step="0.5" value="5" oninput="render()">
+      <div class="row"><span>your debt D</span><b id="dbt">0</b></div>
+    </div>
+    <div class="mkt">
+      <h3>② Supply here — <span style="color:var(--gold)">High venue</span></h3>
+      <div class="rate" style="color:var(--green)"><span id="sH">19.00%</span> <span style="font-size:11px;color:var(--muted);font-weight:600">supply APR</span></div>
+      <div class="slbl"><span>supply rate (drag = market moves)</span></div>
+      <input type="range" id="sHs" min="1" max="30" step="0.5" value="19" oninput="render()">
+      <div class="row"><span>your position P</span><b id="pos">0</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="legend">
+      <span class="k"><span class="dot" style="background:var(--pink)"></span>Your equity (leveraged)</span>
+      <span class="k"><span class="dot" style="background:var(--muted)"></span>Unleveraged (just supply equity to High)</span>
+    </div>
+    <svg viewBox="0 0 880 200" role="img" aria-label="equity over time">
+      <line x1="50" y1="12" x2="50" y2="172" stroke="#2c2740"/>
+      <line x1="50" y1="172" x2="868" y2="172" stroke="#2c2740"/>
+      <path id="baseLine" fill="none" stroke="#9a92b3" stroke-width="2" stroke-dasharray="4 4"/>
+      <path id="eqLine" fill="none" stroke="#ff2e88" stroke-width="2.5"/>
+    </svg>
+    <div class="teach" id="verdict" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card">
+    <div class="teach" style="background:none;border:none;padding:0;color:var(--text)">
+      <b style="color:var(--gold)">The formula:</b> ROE = s<sub>high</sub> + (s<sub>high</sub> − b<sub>low</sub>) × (leverage − 1). At 1× you just earn the high supply rate; each extra turn adds one more <b>spread</b>. That is why degens loop.<br><br>
+      <b style="color:var(--gold)">Leverage has a ceiling:</b> the position collateralizes the loan, so LTV = (ℓ−1)/ℓ must stay under the collateral factor → <b>ℓ ≤ 1/(1−CF)</b> (CF 0.85 → ~6×). At the ceiling HF≈1: one small adverse move and you are liquidated.<br><br>
+      <b style="color:var(--gold)">Leverage cuts both ways.</b> Drag the <b>Low</b> borrow rate above the <b>High</b> supply rate (a rate shock): the spread goes negative, debt outgrows the position, HF slides to 1, and your equity is wiped <b>faster the more leverage you used</b>. Fragility = leverage (§28).<br><br>
+      <b style="color:var(--gold)">The dream → flash loan.</b> This carry needs equity <b>locked as a cushion</b> and can be liquidated. What if you could borrow the whole position with <b>zero equity</b>, capture the spread, and repay in the <b>same transaction</b>? No cushion, no liquidation (atomic) — but only for instant, self-closing arbs. That is the flash loan, next.
+    </div>
+  </div>
+  <div class="foot">MB/CSE 599 · AI Finance · leveraged rate carry (cross-venue) · leverage amplifies the spread — and the death</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const fmt=v=>v.toLocaleString(undefined,{maximumFractionDigits:0});
+const pct=v=>(v*100).toFixed(2)+'%';
+const E0=10000, LIQ=0.85;
+let P=0, D=0, days=0, running=false, speed=20, lev0=3, base=E0, liquidated=false, closed=false, escaped=0;
+const hist=[];
+const bL=()=>+$("bLs").value/100, sH=()=>+$("sHs").value/100;
+const equity=()=>P-D;
+
+function levL(){ lev0=+$("levset").value; $("levLbl").textContent=lev0.toFixed(1)+'×'; }
+function spL(){ speed=+$("speed").value; $("spLbl").textContent=speed; }
+
+function openPos(){
+  liquidated=false; closed=false; $("liqBanner").style.display='none'; $("okBanner").style.display='none';
+  P = lev0*E0; D = (lev0-1)*E0; base=E0; days=0; hist.length=0;
+  render();
+}
+function reset(){ P=0; D=0; base=E0; days=0; hist.length=0; liquidated=false; closed=false; running=false;
+  $("runBtn").textContent='▶ Run time'; $("runBtn").classList.add('paused');
+  $("liqBanner").style.display='none'; $("okBanner").style.display='none'; render(); }
+
+function closePos(){
+  if(liquidated || closed || P<=0) return;
+  escaped=Math.max(0,equity()); closed=true; running=false;
+  $("runBtn").textContent='▶ Run time'; $("runBtn").classList.add('paused');
+  $("okBanner").style.display='block'; render();
+}
+
+function tick(){
+  if(!running || liquidated || closed || P<=0) return;
+  const dt=(speed*0.1)/365;
+  days += speed*0.1;
+  P *= (1+sH()*dt);          // position compounds at high supply rate
+  D *= (1+bL()*dt);          // debt compounds at low borrow rate
+  base *= (1+sH()*dt);       // unleveraged baseline: your equity alone in High
+  const hf = D>0 ? P*LIQ/D : 99;
+  if(hf<1){ liquidated=true; P=0; D=0; $("liqBanner").style.display='block'; }
+  hist.push({eq:Math.max(0,equity()), base});
+  if(hist.length>420) hist.shift();
+  render();
+}
+setInterval(tick,100);
+function toggle(){ if(liquidated||closed) return; if(P<=0){ openPos(); } running=!running;
+  const b=$("runBtn"); b.textContent=running?'⏸ Pause':'▶ Run time'; b.classList.toggle('paused',!running); }
+
+function drawChart(){
+  if(hist.length<2){ $("eqLine").setAttribute('d',''); $("baseLine").setAttribute('d',''); return; }
+  const xs=i=>50+(i/(hist.length-1))*818;
+  const hi=Math.max(...hist.map(h=>Math.max(h.eq,h.base)), E0*1.05);
+  const ys=v=>172-(v/hi)*158;
+  const line=key=>hist.map((h,i)=>(i?'L':'M')+xs(i).toFixed(1)+','+ys(h[key]).toFixed(1)).join(' ');
+  $("eqLine").setAttribute('d',line('eq')); $("baseLine").setAttribute('d',line('base'));
+}
+
+function render(){
+  const b=bL(), s=sH(), E=equity(), lev=E>0?P/E:0, hf=D>0?P*LIQ/D:99;
+  const spread=s-b, roe = P>0 ? (s*P-b*D)/E : (s+spread*(lev0-1));
+  $("bL").textContent=pct(b); $("sH").textContent=pct(s);
+  $("dbt").textContent=fmt(D)+' tUSDC'; $("pos").textContent=fmt(P)+' tUSDC';
+  $("eq").textContent=fmt(Math.max(0,E)); $("eq").style.color=E>=E0?'var(--green)':(E<=0?'var(--red)':'var(--gold)');
+  $("lev").textContent=(P>0?lev.toFixed(2):lev0.toFixed(1))+'×';
+  $("spread").textContent=(spread>=0?'+':'−')+pct(Math.abs(spread)); $("spread").style.color=spread>=0?'var(--green)':'var(--red)';
+  $("roe").textContent=(roe>=0?'+':'−')+pct(Math.abs(roe)); $("roe").style.color=roe>=0?'var(--green)':'var(--red)';
+  $("hf").textContent=P>0?(hf>=99?'∞':hf.toFixed(2)):'—'; $("hf").style.color=hf>=1.5?'var(--green)':hf>=1.1?'var(--gold)':'var(--red)';
+  const danger = P>0 && !closed && !liquidated && spread<0;
+  $("hf").classList.toggle('danger', danger && hf<1.35);
+  $("closeBtn").classList.toggle('danger', danger && hf<1.35);
+  $("days").textContent=days.toFixed(0)+' d';
+  $("fD").textContent=fmt(D); $("fP").textContent=fmt(P); $("fbL").textContent=pct(b); $("fsH").textContent=pct(s);
+  const edge=Math.max(0,E)-base;
+  $("verdict").innerHTML= closed
+    ? `✓ <b style="color:var(--green)">Closed at day ${days.toFixed(0)}.</b> You unwound (withdrew the position, repaid the debt) <b>before the keeper</b> and walked away with <b style="color:var(--green)">${fmt(escaped)}</b> equity. Lower leverage gave you more time to react.`
+    : liquidated
+    ? `☠ <b style="color:var(--red)">Liquidated at day ${days.toFixed(0)}.</b> Debt (@${pct(b)}) outgrew the position (@${pct(s)}); HF hit 1 and your <b>${fmt(E0)}</b> equity was wiped. The higher your leverage, the sooner this came.`
+    : P<=0
+    ? (()=>{ const proj=s+spread*(lev0-1); return `Set a leverage and hit <b style="color:var(--pink)">⚡ Open carry</b>. At <b style="color:var(--pink)">${lev0.toFixed(1)}×</b> with spread <b style="color:${spread>=0?'var(--green)':'var(--red)'}">${(spread>=0?'+':'−')+pct(Math.abs(spread))}</b>, your ROE would start at <b style="color:${proj>=0?'var(--green)':'var(--red)'}">${(proj>=0?'+':'−')+pct(Math.abs(proj))}</b> — vs just <b>${pct(s)}</b> unleveraged. That extra is the spread × (leverage−1).`; })()
+    : `${danger?'<b style="color:var(--red)">⚠ Negative carry — HF sliding, keeper circling. CLOSE NOW.</b> ':''}Day <b>${days.toFixed(0)}</b>: leverage <b style="color:var(--pink)">${lev.toFixed(2)}×</b>, spread <b style="color:${spread>=0?'var(--green)':'var(--red)'}">${(spread>=0?'+':'−')+pct(Math.abs(spread))}</b>, ROE <b style="color:${roe>=0?'var(--green)':'var(--red)'}">${(roe>=0?'+':'−')+pct(Math.abs(roe))}</b>, HF <b style="color:${hf>=1.1?'var(--green)':'var(--red)'}">${hf>=99?'∞':hf.toFixed(2)}</b>. Leverage earned you <b style="color:${edge>=0?'var(--green)':'var(--red)'}">${edge>=0?'+':'−'}${fmt(Math.abs(edge))}</b> over unleveraged.`;
+  drawChart();
+}
+levL(); render();
+</script>
+</body>
+</html>

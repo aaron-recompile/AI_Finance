@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 5 · Composability → Flash Loans</title>
+<style>
+  :root{--bg:#0d0b14;--card:#161320;--border:#2c2740;--text:#f4f1fb;--muted:#9a92b3;
+    --green:#4ade80;--red:#ff7b72;--gold:#fbbf24;--purple:#8b5cf6;--blue:#60a5fa;--pink:#ff2e88;--mono:ui-monospace,Menlo,monospace;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:radial-gradient(1200px 800px at 75% -10%,#1a1330,var(--bg));color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:5vh 7vw 11vh;animation:fade .35s ease;overflow:hidden}
+  .slide.on{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .kick{font-family:var(--mono);font-size:clamp(12px,1.5vw,16px);color:var(--purple);letter-spacing:1px;text-transform:uppercase;margin-bottom:2vh}
+  h1{font-size:clamp(30px,5.2vw,54px);line-height:1.08;margin-bottom:2vh}
+  h1 .g{background:linear-gradient(90deg,var(--blue),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+  h2{font-size:clamp(25px,4.2vw,40px);line-height:1.14;margin-bottom:3vh}
+  h2 .g{background:linear-gradient(90deg,var(--pink),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+  ul{list-style:none;font-size:clamp(16px,2.5vw,26px);line-height:1.65}
+  li{margin:1vh 0;padding-left:1.4em;position:relative}
+  li::before{content:"▸";position:absolute;left:0;color:var(--purple)}
+  li b{color:var(--gold)}
+  .term{font-family:var(--mono);color:var(--blue);font-size:.92em}
+  .big{font-size:clamp(19px,2.9vw,32px);line-height:1.5}
+  .demo{margin-top:3vh;font-family:var(--mono);font-size:clamp(13px,1.9vw,18px);color:var(--green);
+    border:1px solid color-mix(in srgb,var(--green) 40%,var(--border));background:color-mix(in srgb,var(--green) 8%,transparent);
+    border-radius:12px;padding:10px 16px;display:inline-block}
+  .demo b{color:var(--text)}
+  .note{font-size:clamp(15px,2vw,20px);color:var(--muted);margin-top:2.4vh;line-height:1.5}
+  .chain{font-family:var(--mono);font-size:clamp(14px,2vw,21px);line-height:1.8;color:var(--muted)}
+  .chain b{color:var(--text)} .chain .p{color:var(--green)}
+  .center{align-items:center;text-align:center}
+  .sub{font-size:clamp(16px,2.4vw,24px);color:var(--muted);margin-top:1.5vh}
+  .foot{position:absolute;bottom:22px;left:8vw;right:8vw;display:flex;justify-content:space-between;
+    font-family:var(--mono);font-size:13px;color:var(--muted)}
+  .bar{position:absolute;bottom:0;left:0;height:4px;background:linear-gradient(90deg,var(--blue),var(--green));transition:width .3s}
+  kbd{font-family:var(--mono);background:var(--card);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-size:12px}
+</style>
+</head>
+<body>
+
+<!-- 1 -->
+<section class="slide on center">
+  <div class="kick">MB / CSE 599 · AI Finance · Session 5</div>
+  <h1><span class="g">Composability</span><br>From Lego Bricks to Flash Loans</h1>
+  <div class="sub">Live demos · Base Sepolia · we snap our contracts together</div>
+</section>
+
+<!-- 2 -->
+<section class="slide">
+  <div class="kick">Where we are</div>
+  <h2>Four sessions = four <span class="g">bricks</span></h2>
+  <ul>
+    <li>Session 1 — <b>ERC-20 token</b> = a receipt</li>
+    <li>Session 2 — <b>AMM</b> = automated market maker (<span class="term">x·y=k</span>)</li>
+    <li>Session 3 — <b>Lending</b> = supply / borrow</li>
+    <li>Session 4 — <b>Farm</b> = liquidity mining</li>
+  </ul>
+  <div class="note">Today we stop building bricks — we <b style="color:var(--gold)">compose</b> them.</div>
+</section>
+
+<!-- 3 -->
+<section class="slide center">
+  <div class="kick">The one question</div>
+  <h2>Why do separate contracts <span class="g">snap together?</span></h2>
+  <div class="big">Because they all speak one language:<br><span class="term" style="font-size:1.3em">ERC-20</span></div>
+  <div class="note">One contract's <b>output</b> is the next contract's <b>input</b>. That is <b style="color:var(--gold)">composability</b>.</div>
+</section>
+
+<!-- 4 -->
+<section class="slide">
+  <div class="kick">Warm-up · Farming</div>
+  <h2>Mine &amp; dump — <span class="g">small farmers drain the whale</span></h2>
+  <ul>
+    <li>A farm <b>prints a token to bribe you</b> to keep liquidity (<span class="term">emissions</span>)</li>
+    <li>Mine the FARM token → <b>dump it on the market</b> → take real money</li>
+    <li>Discipline = sell what you mine; greed = keep compounding, become the exit</li>
+  </ul>
+  <div class="demo">open <b>farm.html</b> → stake LP, harvest, dump in v2.html</div>
+</section>
+
+<!-- 5 -->
+<section class="slide center">
+  <div class="kick">The shape of a high-emission farm</div>
+  <h2>Quantity ↑ × Price ↓ = <span class="g">spike, then zero</span></h2>
+  <div class="big"><span class="term">value = e^(r·t − a·t²)</span></div>
+  <div class="note">Coins compound up; price accelerates down. Real money = a bell curve that dies.</div>
+  <div class="demo">open <b>farm-deathspiral-viz.html</b></div>
+</section>
+
+<!-- 6 -->
+<section class="slide">
+  <div class="kick">Arbitrage 1 · Swap</div>
+  <h2>Manual <span class="g">two-DEX arbitrage</span></h2>
+  <ul>
+    <li>Two DEXes, same pair, <b>different price</b></li>
+    <li>Buy low on one → sell high on the other → pocket the gap</li>
+    <li><b>Your trade closes the gap</b> — arbitrage makes markets efficient (instantly)</li>
+  </ul>
+  <div class="demo">open <b>arb.html</b> → skew DEX-A, then buy-B / sell-A</div>
+</section>
+
+<!-- 7 -->
+<section class="slide">
+  <div class="kick">Arbitrage 2 · Interest rates (iEarn)</div>
+  <h2>Chase the best <span class="g">lending rate</span></h2>
+  <ul>
+    <li>Same coin, three venues, different <b>supply APR</b></li>
+    <li>Move to the highest → profit = <span class="term">spread × size × time</span></li>
+    <li>The crowd piles in → rates <b>converge</b> → no more free lunch (<span class="term">equilibrium</span>)</li>
+  </ul>
+  <div class="demo">open <b>lend-arb.html</b> → Move to best, Run time, watch lines merge</div>
+</section>
+
+<!-- 8 -->
+<section class="slide">
+  <div class="kick">Arbitrage 3 · Leveraged carry (optional)</div>
+  <h2>Borrow low, lend high — with <span class="g">leverage</span></h2>
+  <ul>
+    <li>ROE = <span class="term">s_high + (s_high − b_low) × (leverage − 1)</span></li>
+    <li>Leverage amplifies the spread… and the <b>death</b></li>
+    <li>Rate flips → <span class="term">health factor</span> → 1 → <b>liquidated</b> before you can exit</li>
+  </ul>
+  <div class="demo">open <b>lend-carry.html</b> → open 5×, shock the rate, race the keeper</div>
+</section>
+
+<!-- 9 -->
+<section class="slide center">
+  <div class="kick">The hinge of today</div>
+  <h2>Why these really are <span class="g">Lego bricks</span></h2>
+  <div class="chain">
+    real tUSDC <b>─deposit→</b> AMM <b>─mints→</b> <span class="p">LP receipt (ERC-20)</span><br>
+    <span class="p">LP receipt</span> <b>─stake→</b> Farm <b>─mints→</b> <span class="p">farm position (ERC-20)</span><br>
+    <span class="p">position</span> <b>─collateral→</b> borrow more <b>→</b> … stack again
+  </div>
+  <div class="note">Every position is tokenized into an <b>ERC-20 receipt</b> → sellable, stakeable, <b>composable</b>. Money Lego.</div>
+</section>
+
+<!-- 10 -->
+<section class="slide center">
+  <div class="kick">Two faces</div>
+  <h2>Composability = <span class="g">superpower</span> &amp; <span style="color:var(--red)">fragility</span></h2>
+  <div class="big">Permissionless snapping → 100s of lines do what banks need a team for<br><br>
+  Receipt-on-receipt tower → one bad brick, <b style="color:var(--red)">the whole thing cascades</b></div>
+  <div class="note">Same skeleton as 2008 CDOs and the UST collapse.</div>
+</section>
+
+<!-- 11 -->
+<section class="slide">
+  <div class="kick">Flash loan · the crown</div>
+  <h2>Borrow → arb → repay, in <span class="g">one transaction</span></h2>
+  <ul>
+    <li>Start with <b>$0 of your own</b></li>
+    <li>Borrow a pile, arb the gap, repay — all in one atomic call</li>
+    <li><b>No collateral</b>: if you don't repay, the chain rewinds everything</li>
+  </ul>
+  <div class="demo">open <b>flashloan-viz.html</b> → Execute at 4,000</div>
+</section>
+
+<!-- 12 -->
+<section class="slide center">
+  <div class="kick">Flash loan · the rule</div>
+  <h2><span class="g">All-or-nothing</span> (atomicity)</h2>
+  <div class="big">Profit ≥ 0 → it commits, you keep it<br>
+  Profit &lt; 0 → the whole tx <b style="color:var(--red)">reverts</b>, you lose only gas</div>
+  <div class="note">Borrow too much → your own trades flatten the gap (<span class="term">price impact</span>) → revert. <b>Self-limiting.</b></div>
+</section>
+
+<!-- 13 -->
+<section class="slide">
+  <div class="kick">Flash loan · LIVE (the finale)</div>
+  <h2>One tx · <span class="g">7 transfers</span> · +471 from $0</h2>
+  <div class="chain">
+    ① Lender → Bot &nbsp;&nbsp;<b>20,000 tUSDC</b> &nbsp;borrow<br>
+    ② Bot → Cheap &nbsp;20,000 → &nbsp;③ get <b>10.12 MAX</b><br>
+    ④ Bot → Dear &nbsp;10.12 MAX → &nbsp;⑤ get <b>20,481 tUSDC</b><br>
+    ⑥ Bot → Lender &nbsp;<b>20,010</b> &nbsp;repay + fee<br>
+    ⑦ Bot → Owner &nbsp;<span class="p"><b>+471 profit</b></span>
+  </div>
+  <div class="demo">open <b>flashloan.html</b> → Run → open the tx on basescan</div>
+</section>
+
+<!-- 14 -->
+<section class="slide center">
+  <div class="kick">And then…</div>
+  <h2>The gap <span class="g">collapsed</span>: 5.13% → 0.96%</h2>
+  <div class="big">One flash loan ate most of the gap.<br>Run it again → it <b style="color:var(--red)">reverts</b>.</div>
+  <div class="note"><b style="color:var(--gold)">Arbitrage closes its own opportunity.</b> The free lunch is real, finite, and self-erasing.</div>
+</section>
+
+<!-- 15 -->
+<section class="slide">
+  <div class="kick">Under the hood (if time)</div>
+  <h2>Standards &amp; <span class="g">contracts calling contracts</span></h2>
+  <ul>
+    <li><span class="term">approve</span> + <span class="term">transferFrom</span> — the ERC-20 permission dance</li>
+    <li><span class="term">sstore</span> / <span class="term">sload</span> — storage = the ledger (write costs gas)</li>
+    <li>web3.py: <span class="term">build → sign → send</span></li>
+    <li>Flash loan = <b>lender lends → callback → you swap → repay-check</b>, all one call</li>
+  </ul>
+</section>
+
+<!-- 16 -->
+<section class="slide center">
+  <div class="kick">Wrap</div>
+  <h2>Composability is the <span class="g">superpower</span></h2>
+  <div class="big">Bricks → arbitrage → flash loans.<br>People did it <b>by hand</b> today.</div>
+  <div class="note">Next session: a <b style="color:var(--gold)">web3.py agent</b> watches the pools and grabs these chances automatically — the real on-chain world is bots.</div>
+</section>
+
+<div class="foot"><span id="tag">Composability → Flash Loans</span><span><kbd>←</kbd> <kbd>→</kbd> to navigate · <span id="num">1 / 16</span></span></div>
+<div class="bar" id="bar"></div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=0;
+  function show(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('on',k===i));
+    document.getElementById('num').textContent=(i+1)+' / '+slides.length;
+    document.getElementById('bar').style.width=((i+1)/slides.length*100)+'%';
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ') show(i+1);
+    else if(e.key==='ArrowLeft'||e.key==='PageUp') show(i-1);
+    else if(e.key==='Home') show(0);
+    else if(e.key==='End') show(slides.length-1);
+  });
+  document.addEventListener('click',e=>{ if(e.clientX > window.innerWidth*0.35) show(i+1); else show(i-1); });
+  show(0);
+</script>
+</body>
+</html>

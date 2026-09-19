@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flash-loan arb · one click, one tx</title>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+<style>
+  :root{--bg:#0d0b14;--card:#161320;--card2:#1e1a2b;--border:#2c2740;--text:#f4f1fb;--muted:#9a92b3;
+    --green:#4ade80;--red:#ff7b72;--gold:#fbbf24;--purple:#8b5cf6;--blue:#60a5fa;--pink:#ff2e88;--mono:ui-monospace,Menlo,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:radial-gradient(1200px 700px at 80% -10%,#1a1330,var(--bg));
+    color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:16px}
+  .wrap{max-width:820px;margin:0 auto}
+  .head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+  .brand{font-size:20px;font-weight:800}.brand span{background:linear-gradient(90deg,var(--blue),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .pill{background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff;border:none;border-radius:999px;padding:9px 16px;font-weight:700;cursor:pointer;font-family:var(--mono);font-size:12px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:14px;margin-bottom:12px}
+  .pools{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:560px){.pools{grid-template-columns:1fr}}
+  .pool{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+  .pool h3{margin:0 0 4px;font-size:13px}
+  .pool .p{font-family:var(--mono);font-weight:800;font-size:22px}
+  .pool .r{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:3px}
+  .gap{text-align:center;font-family:var(--mono);font-size:13px;color:var(--gold);margin:8px 0}
+  .amt{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:var(--mono);font-size:18px}
+  .rowlbl{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+  @media(max-width:560px){.grid{grid-template-columns:1fr 1fr}}
+  .box{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center}
+  .box .t{font-size:10px;color:var(--muted)}.box .v{font-family:var(--mono);font-weight:800;font-size:14px;margin-top:2px}
+  .run{width:100%;background:linear-gradient(90deg,var(--blue),var(--green));color:#04210f;border:none;border-radius:12px;padding:14px;font-weight:800;font-size:15px;cursor:pointer;margin-top:10px}
+  .run:disabled{opacity:.5;cursor:not-allowed}
+  .est{text-align:center;font-family:var(--mono);font-size:13px;margin-top:8px}
+  .log{font-family:var(--mono);font-size:11.5px;color:var(--muted);background:#0a0810;border:1px solid var(--border);border-radius:10px;padding:9px;margin-top:10px;max-height:140px;overflow:auto;white-space:pre-wrap;word-break:break-all}
+  .log a{color:var(--blue)}
+  .teach{background:color-mix(in srgb,var(--gold) 9%,transparent);border:1px solid color-mix(in srgb,var(--gold) 32%,var(--border));border-radius:11px;padding:11px 14px;font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:10px}
+  .teach b{color:var(--gold)}
+  .foot{text-align:center;font-size:11px;color:var(--muted);margin-top:14px}
+  .foot a{color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="brand">⚡ <span>Flash-loan Arb</span> <span style="color:var(--muted);font-weight:500;font-size:12px">AI Finance · zero-capital</span></div>
+    <button class="pill" id="conn" onclick="connect()">Connect</button>
+  </div>
+  <div class="sub">Borrow tUSDC with <b style="color:var(--gold)">$0 of your own</b>, buy MAX on the cheap DEX, sell on the dear DEX, repay — <b>all in one transaction</b>. Profit goes to the bot's owner. Over-borrow → the whole tx reverts.</div>
+
+  <div class="card">
+    <div class="pools">
+      <div class="pool"><h3>🟢 DEX-cheap (buy MAX)</h3><div class="p" id="pc" style="color:var(--green)">—</div><div class="r" id="rc">—</div></div>
+      <div class="pool"><h3>🔴 DEX-dear (sell MAX)</h3><div class="p" id="pd" style="color:var(--red)">—</div><div class="r" id="rd">—</div></div>
+    </div>
+    <div class="gap">price gap <b id="gap">—</b> · lender liquidity <b id="lend">—</b> tUSDC</div>
+  </div>
+
+  <div class="card">
+    <div class="rowlbl"><span>Flash-borrow amount (tUSDC)</span><span>fee 0.05%</span></div>
+    <input class="amt" id="amt" value="20000" oninput="estimate()">
+    <div class="grid">
+      <div class="box"><div class="t">MAX bought (cheap)</div><div class="v" id="eM" style="color:var(--green)">—</div></div>
+      <div class="box"><div class="t">tUSDC back (dear)</div><div class="v" id="eU" style="color:var(--gold)">—</div></div>
+      <div class="box"><div class="t">Must repay</div><div class="v" id="eR" style="color:var(--red)">—</div></div>
+      <div class="box"><div class="t">Est. profit</div><div class="v" id="eP" style="color:var(--green)">—</div></div>
+    </div>
+    <div class="est" id="est">—</div>
+    <button class="run" id="runBtn" onclick="runArb()" disabled>⚡ Run flash-loan arb (1 transaction)</button>
+    <div class="log" id="log">connect a wallet on Base Sepolia to begin.</div>
+  </div>
+
+  <div class="card">
+    <div class="rowlbl"><span>Bot owner (CSTU) profit wallet</span></div>
+    <div style="font-family:var(--mono);font-size:15px;font-weight:800" id="ownerBal">—</div>
+    <div class="teach">💡 <b>Zero capital, atomic.</b> The bot never holds the borrowed tUSDC beyond one tx: borrow → buy → sell → repay happen inside a single call. Repay covered → profit kept; not covered → <b>the entire tx reverts</b>, you lose only gas. No collateral, no liquidation — there is no position to seize. <b>Borrow too much and your own trades flatten the 5% gap</b> (price impact) → revert. Watch it on the explorer: one tx, the whole borrow→arb→repay chain inside.</div>
+  </div>
+  <div class="foot">MB/CSE 599 · AI Finance · Base Sepolia · <a id="scanArb" target="_blank">Arbitrageur</a> · <a id="scanLend" target="_blank">FlashLender</a></div>
+</div>
+
+<script>
+const RPC="https://base-sepolia-rpc.publicnode.com", CHAIN=84532, CHAIN_HEX="0x14a34";
+const ARB="0x2Ba807B0CBB4290C4eEfd188909d621d3c957653";
+const CHEAP="0xfE366315A4A21d34F875a737612e3Fe860bCd7f9";
+const DEAR="0x41c58Dc7eed3597FcDA9Cc6E42F11eB97b98CEff";
+const LENDER="0x1F765C16B1847579Ac90f095157E1A083BbBB51A";
+const TUSDC="0x6797beC4DC1D4444Fe81790c47e9FB91e491Ac69";
+const ARB_ABI=["function run(uint256)","function owner() view returns (address)"];
+const AMM_ABI=["function reserve0() view returns (uint256)","function reserve1() view returns (uint256)"];
+const ERC20=["function balanceOf(address) view returns (uint256)"];
+const readP=new ethers.JsonRpcProvider(RPC);
+const $=id=>document.getElementById(id);
+let signer=null, me=null, owner=null;
+let Rc0=0n,Rc1=0n,Rd0=0n,Rd1=0n; // reserves (MAX=0, tUSDC=1)
+const F=(v,d=2)=>Number(ethers.formatUnits(v,18)).toLocaleString(undefined,{maximumFractionDigits:d});
+function log(m,link){ const t=new Date().toLocaleTimeString(); $("log").innerHTML = `[${t}] `+m+(link?` <a href="${link}" target="_blank">${link.split('/').pop().slice(0,12)}…</a>`:'')+"\n"+$("log").innerHTML; }
+
+$("scanArb").href="https://sepolia.basescan.org/address/"+ARB;
+$("scanLend").href="https://sepolia.basescan.org/address/"+LENDER;
+
+// x*y=k with 0.3% fee (same as SimpleAMM.getAmountOut)
+function getOut(inAmt, rIn, rOut){ const a=inAmt*9970n; return a*rOut/(rIn*10000n + a); }
+
+async function refresh(){
+  const c=new ethers.Contract(CHEAP,AMM_ABI,readP), d=new ethers.Contract(DEAR,AMM_ABI,readP), t=new ethers.Contract(TUSDC,ERC20,readP);
+  [Rc0,Rc1,Rd0,Rd1]=await Promise.all([c.reserve0(),c.reserve1(),d.reserve0(),d.reserve1()]);
+  const pc=Number(Rc1)/Number(Rc0), pd=Number(Rd1)/Number(Rd0);
+  $("pc").textContent=pc.toFixed(2); $("pd").textContent=pd.toFixed(2);
+  $("rc").textContent=F(Rc0,1)+" MAX / "+F(Rc1,0)+" tUSDC";
+  $("rd").textContent=F(Rd0,1)+" MAX / "+F(Rd1,0)+" tUSDC";
+  $("gap").textContent=((pd/pc-1)*100).toFixed(2)+"%";
+  $("lend").textContent=F(await t.balanceOf(LENDER),0);
+  if(!owner){ owner=await new ethers.Contract(ARB,ARB_ABI,readP).owner(); }
+  $("ownerBal").textContent=F(await t.balanceOf(owner),2)+" tUSDC  ("+owner.slice(0,6)+"…"+owner.slice(-4)+")";
+  estimate();
+}
+
+function estimate(){
+  try{
+    const D=ethers.parseUnits(($("amt").value||"0").replace(/,/g,''),18);
+    if(D<=0n||Rc0===0n){ $("est").textContent="—"; return; }
+    const maxOut=getOut(D, Rc1, Rc0);          // buy MAX on cheap (in tUSDC=res1, out MAX=res0)
+    const usdOut=getOut(maxOut, Rd0, Rd1);     // sell MAX on dear (in MAX=res0, out tUSDC=res1)
+    const repay=D + D*5n/10000n;
+    const profit=usdOut - repay;
+    $("eM").textContent=F(maxOut,4)+" MAX";
+    $("eU").textContent=F(usdOut,0); $("eR").textContent=F(repay,0);
+    $("eP").textContent=(profit>=0n?"+":"−")+F(profit<0n?-profit:profit,0);
+    $("eP").style.color=profit>=0n?"var(--green)":"var(--red)";
+    const ok=profit>0n;
+    $("est").innerHTML = ok
+      ? `✓ profitable — the tx will succeed and send <b style="color:var(--green)">+${F(profit,0)} tUSDC</b> profit to the bot owner`
+      : `✗ not profitable — the tx would <b style="color:var(--red)">revert</b> (you'd lose only gas). Lower the amount.`;
+    if($("runBtn")) $("runBtn").disabled = !signer;
+  }catch(e){ $("est").textContent="enter a number"; }
+}
+
+async function connect(){
+  if(!window.ethereum){ log("no wallet found — install MetaMask"); return; }
+  const cid=await window.ethereum.request({method:"eth_chainId"});
+  if(parseInt(cid,16)!==CHAIN){ try{ await window.ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:CHAIN_HEX}]}); }catch(e){} }
+  signer=await new ethers.BrowserProvider(window.ethereum).getSigner(); me=await signer.getAddress();
+  $("conn").textContent=me.slice(0,6)+"…"+me.slice(-4);
+  log("connected "+me);
+  $("runBtn").disabled=false; refresh();
+}
+
+async function runArb(){
+  if(!signer){ connect(); return; }
+  try{
+    const D=ethers.parseUnits(($("amt").value||"0").replace(/,/g,''),18);
+    const arb=new ethers.Contract(ARB,ARB_ABI,signer);
+    log("sending flash-loan arb tx… (borrow→buy→sell→repay, one tx)");
+    const tx=await arb.run(D);
+    log("submitted "+tx.hash, "https://sepolia.basescan.org/tx/"+tx.hash);
+    await tx.wait();
+    log("✅ confirmed — one atomic tx did the whole arbitrage");
+    refresh();
+  }catch(e){
+    const m=(e.info?.error?.message)||e.shortMessage||e.message||String(e);
+    log("⛔ reverted / failed: "+m+"  (only gas lost — nothing else happened)");
+  }
+}
+
+estimate(); refresh(); setInterval(refresh, 12000);
+</script>
+</body>
+</html>
