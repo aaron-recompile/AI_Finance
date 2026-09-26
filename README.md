@@ -39,6 +39,35 @@ Run each after `conda activate ai_finance` (see `SETUP.md`):
 
 ---
 
+## Week 2 — DeFi Legos: AMM + Lending
+
+The building blocks. Swap on an AMM, then supply/borrow on a lending market — and see a liquidation.
+
+| What | Where |
+|------|-------|
+| 🖥️ **Slides — AMM** | [`week-02/slides/AI_Finance_Week2_AMM.html`](week-02/slides/AI_Finance_Week2_AMM.html) — `x·y=k`, price, slippage |
+| 🖥️ **Slides — Lending** | [`week-02/slides/AI_Finance_Week2_Lending.html`](week-02/slides/AI_Finance_Week2_Lending.html) — supply/borrow, health factor, liquidation |
+| 🎮 **Interactive dApps** | [`week-02/app/`](week-02/app/) — `v2.html` (AMM swap) · `lend.html` (lending) · `farm.html` (yield farming: mine & dump) |
+| 📊 **Visualizations** | [`week-02/viz/`](week-02/viz/) — AMM swap · lending & liquidation |
+| 💻 **Code** | [`week-02/code/`](week-02/code/) — `amm.py` · `lend.py` · `lend_demo.py`; Foundry: `amm-foundry` (SimpleAMM) · `lend-foundry` (SimpleLend) |
+
+---
+
+## Week 3 — Composability → Bots on Chain
+
+Snap the legos together into arbitrage and flash loans — first **by hand**, then let **bots** do it in one heartbeat.
+
+| What | Where |
+|------|-------|
+| 🖥️ **Slides — Part 1: Composability** | [`week-03/slides/AI_Finance_Week3_Composability.html`](week-03/slides/AI_Finance_Week3_Composability.html) — legos → flash loans, done by hand |
+| 🖥️ **Slides — Part 2: Bots on Chain (lab)** | [`week-03/slides/AI_Finance_Week3_Bots.html`](week-03/slides/AI_Finance_Week3_Bots.html) — the machines do it automatically |
+| 🎮 **Interactive dApps** | [`week-03/app/`](week-03/app/) — `arb.html` (two-DEX arbitrage) · `flashloan.html` (zero-capital flash arb, one tx) |
+| 📊 **Visualizations** | [`week-03/viz/`](week-03/viz/) — flash loan · interest-rate arb · leveraged carry |
+| 🤖 **Bot lab (run it)** | [`week-03/code/lab-bot/`](week-03/code/lab-bot/) — 5 deterministic bots + a live dashboard. `pip install web3` then `./student_start.sh` (read-only, no wallet) and watch them detect on-chain opportunities the instant the market moves. |
+| 💻 **Contracts (Foundry)** | [`week-03/code/flashloan-foundry/`](week-03/code/flashloan-foundry/) — FlashLender + Arbitrageur + SimpleAMM |
+
+---
+
 ## Repository layout
 
 Each week is one folder with the same shape — look in the same place every week:
