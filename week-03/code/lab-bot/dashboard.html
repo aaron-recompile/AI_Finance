@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent arena · live</title>
+<style>
+  :root{--bg:#0d0b14;--card:#161320;--card2:#1e1a2b;--border:#2c2740;--text:#f4f1fb;--muted:#9a92b3;
+    --green:#4ade80;--red:#ff7b72;--gold:#fbbf24;--purple:#8b5cf6;--blue:#60a5fa;--pink:#ff2e88;--mono:ui-monospace,Menlo,monospace;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(1200px 800px at 80% -10%,#1a1330,var(--bg));color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:20px}
+  .wrap{max-width:960px;margin:0 auto}
+  .top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+  h1{font-size:22px}h1 span{background:linear-gradient(90deg,var(--green),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .meta{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:right}
+  .mode{display:inline-block;padding:2px 9px;border-radius:999px;font-weight:800;font-size:11px}
+  .mode.dry{background:color-mix(in srgb,var(--gold) 20%,transparent);color:var(--gold);border:1px solid var(--gold)}
+  .mode.live{background:color-mix(in srgb,var(--green) 20%,transparent);color:var(--green);border:1px solid var(--green)}
+  .total{font-family:var(--mono);font-size:30px;font-weight:800;color:var(--green);margin:2px 0 14px}
+  .bots{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:680px){.bots{grid-template-columns:1fr}}
+  .bot{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px;transition:border-color .2s}
+  .bot.hit{border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset}
+  .bot.fired{animation:flash 1s}
+  @keyframes flash{0%{background:color-mix(in srgb,var(--green) 30%,var(--card))}100%{background:var(--card)}}
+  .bh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .bn{font-weight:800;font-size:15px}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px;background:var(--muted)}
+  .dot.on{background:var(--green);box-shadow:0 0 8px var(--green)}
+  .st{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .st.on{color:var(--green)}
+  .line{font-family:var(--mono);font-size:12px;color:var(--text);margin:4px 0;word-break:break-word}
+  .foot2{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:8px}
+  .foot2 b{color:var(--gold)}
+  .foot2 a{color:var(--blue)}
+  h2{font-size:14px;margin:18px 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:var(--mono)}
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase}
+  td.n{text-align:right}
+  .rank{color:var(--gold);font-weight:800}
+  .err{color:var(--red)}
+  .note{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>🤖 <span>Agent arena</span> — live</h1>
+    <div class="meta">mode <span id="mode" class="mode dry">—</span><br>updated <b id="upd">—</b> · tick <b id="tick">0</b></div>
+  </div>
+  <div class="st">total realized P&amp;L (this session)</div>
+  <div class="total" id="total">—</div>
+
+  <div class="bots" id="bots"></div>
+
+  <h2>P&amp;L leaderboard</h2>
+  <table>
+    <thead><tr><th>#</th><th>strategy</th><th class="n">fires</th><th class="n">P&amp;L (tUSDC)</th><th>last tx</th></tr></thead>
+    <tbody id="board"></tbody>
+  </table>
+
+  <div class="note">Humans skew the pools (skew a DEX, cut the oracle, let the farm emit) → these bots detect and pounce within a heartbeat. Green = opportunity live now. This reads <span style="font-family:var(--mono)">state.json</span> written by <span style="font-family:var(--mono)">orchestrator.py</span>. Serve this folder: <span style="font-family:var(--mono)">python -m http.server 8010</span></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = v => (v>=0?'+':'−') + Math.abs(v).toLocaleString(undefined,{maximumFractionDigits:2});
+const scan = "https://sepolia.basescan.org/tx/";
+let firedSeen = {};
+
+async function refresh(){
+  let s;
+  try{ s = await (await fetch('state.json?'+Date.now())).json(); }
+  catch(e){ $("upd").textContent = "waiting for orchestrator…"; return; }
+  $("mode").textContent = s.mode; $("mode").className = "mode " + (s.mode==="LIVE"?"live":"dry");
+  $("upd").textContent = s.updated; $("tick").textContent = s.tick;
+  $("total").textContent = fmt(s.total_pnl) + " tUSDC";
+  // cards
+  $("bots").innerHTML = s.bots.map(b=>{
+    const fired = b.fired && !firedSeen[b.name+b.last_tx]; if(b.fired) firedSeen[b.name+b.last_tx]=1;
+    return `<div class="bot ${b.hit?'hit':''} ${fired?'fired':''}">
+      <div class="bh"><div class="bn">${b.name}</div>
+        <div class="st ${b.hit?'on':''}"><span class="dot ${b.hit?'on':''}"></span>${b.hit?'OPPORTUNITY':'idle'}</div></div>
+      <div class="line ${b.line.includes('err')||b.line.includes('ERR')?'err':''}">${b.line}</div>
+      <div class="foot2"><span>fires <b>${b.fires}</b></span><span>P&amp;L <b>${fmt(b.pnl)}</b></span></div>
+    </div>`;
+  }).join('');
+  // leaderboard sorted by pnl
+  const ranked = [...s.bots].sort((a,b)=>b.pnl-a.pnl);
+  $("board").innerHTML = ranked.map((b,i)=>`<tr>
+    <td class="rank">${i+1}</td><td>${b.name}</td><td class="n">${b.fires}</td>
+    <td class="n" style="color:${b.pnl>=0?'var(--green)':'var(--red)'}">${fmt(b.pnl)}</td>
+    <td>${b.last_tx?`<a href="${scan+b.last_tx}" target="_blank">${b.last_tx.slice(0,10)}…</a>`:'—'}</td></tr>`).join('');
+}
+refresh(); setInterval(refresh, 2000);
+</script>
+</body>
+</html>
