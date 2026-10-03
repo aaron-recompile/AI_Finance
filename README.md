@@ -68,6 +68,21 @@ Snap the legos together into arbitrage and flash loans — first **by hand**, th
 
 ---
 
+## Week 4 — From Program to Agent (OpenClaw)
+
+Your bots were a pair of **hands** you drove by hand. This week a **brain** runs them on its own, 24/7, behind a fence — a real autonomous agent you talk to on Telegram.
+
+| What | Where |
+|------|-------|
+| 🖥️ **Slides** | [`week-04/slides/AI_Finance_Week4_OpenClaw.html`](week-04/slides/AI_Finance_Week4_OpenClaw.html) — program → agent; *brain judges, hands execute* |
+| 💬 **Demo prompts** | [`week-04/prompts/jarvis-demo-prompts.md`](week-04/prompts/jarvis-demo-prompts.md) — what to say to the agent, organized by lego |
+| 🤖 **Example skills** | [`week-04/skills/`](week-04/skills/) — real `SKILL.md` recipes (swap · lend · flash-arb) + the `USER.md` standing-rules fence (sanitized) |
+| 📝 **Overview** | [`week-04/README.md`](week-04/README.md) |
+
+Every money action **plans → waits for your `confirm` → executes → verifies on-chain → reports**. The LLM never sizes a trade, never signs, never sees the key.
+
+---
+
 ## Repository layout
 
 Each week is one folder with the same shape — look in the same place every week:
