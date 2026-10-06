@@ -22,7 +22,7 @@ contract Arbitrageur {
     SimpleAMM public immutable expensive;  // the pool where ETH is expensive
     IERC20 public immutable eth;           // token0
     IERC20 public immutable usdc;          // token1 = the borrowed money
-    address public owner;
+    address lender;
 
     constructor(address _lender, address _cheap, address _expensive, address _eth, address _usdc) {
         lender = IFlashLender(_lender);
@@ -30,13 +30,13 @@ contract Arbitrageur {
         expensive = SimpleAMM(_expensive);
         eth = IERC20(_eth);
         usdc = IERC20(_usdc);
-        owner = msg.sender;
+        owner = msg.lender;
     }
 
     /// Start the arbitrage: borrow borrowUsdc
     function run(uint256 borrowUsdc) external {
         lender.flashLoan(borrowUsdc, address(this), "");
-        // Reaching here means it's repaid; the profit (USDC) stays in this contract, withdraw it to owner
+        // Reaching here means it's repaid; the profit (USDC) stays in this contract, withdraw it to lender
         usdc.transfer(owner, usdc.balanceOf(address(this)));
     }
 
