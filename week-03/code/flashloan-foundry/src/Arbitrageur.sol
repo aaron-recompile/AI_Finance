@@ -37,7 +37,7 @@ contract Arbitrageur {
     function run(uint256 borrowUsdc) external {
         lender.flashLoan(borrowUsdc, address(this), "");
         // Reaching here means it's repaid; the profit (USDC) stays in this contract, withdraw it to owner
-        usdc.transfer(owner, usdc.balanceOf(address(this)));
+        usdc.transfer(msg.sender, usdc.balanceOf(address(this)));
     }
 
     /// FlashLender calls back here after lending —— the actual arbitrage logic
