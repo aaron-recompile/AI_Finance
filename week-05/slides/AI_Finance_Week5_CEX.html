@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEX — Trading on a Centralized Exchange</title>
+<style>
+  :root{--bg:#0d0b14;--card:#161320;--border:#2c2740;--text:#f4f1fb;--muted:#9a92b3;
+    --green:#4ade80;--red:#ff7b72;--gold:#fbbf24;--purple:#8b5cf6;--blue:#60a5fa;--pink:#ff2e88;--mono:ui-monospace,Menlo,monospace;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:radial-gradient(1200px 800px at 75% -10%,#1a1330,var(--bg));color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:7vh 9vw 13vh;animation:fade .35s ease;overflow:hidden}
+  .slide.on{display:flex}
+  .slide.center{align-items:center;text-align:center}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .kick{font-family:var(--mono);font-size:clamp(12px,1.5vw,16px);color:var(--purple);letter-spacing:1px;text-transform:uppercase;margin-bottom:3vh}
+  h1{font-size:clamp(36px,6vw,66px);line-height:1.06;margin-bottom:3vh}
+  h1 .g{background:linear-gradient(90deg,var(--blue),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+  h2{font-size:clamp(30px,5vw,50px);line-height:1.12;margin-bottom:4vh}
+  h2 .g{background:linear-gradient(90deg,var(--pink),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+  ul{list-style:none;font-size:clamp(19px,2.9vw,32px);line-height:1.6}
+  li{margin:1.5vh 0;padding-left:1.3em;position:relative}
+  li::before{content:"▸";position:absolute;left:0;color:var(--purple)}
+  li b{color:var(--text)}
+  .big{font-size:clamp(22px,3.6vw,40px);line-height:1.35;color:var(--text)}
+  .note{font-size:clamp(14px,1.8vw,20px);color:var(--muted);margin-top:4vh;line-height:1.5;max-width:52ch}
+  .center .note{margin-left:auto;margin-right:auto}
+  .term{font-family:var(--mono);color:var(--blue)}
+  .hi{color:var(--gold);font-weight:700}
+  table{border-collapse:collapse;font-size:clamp(17px,2.5vw,29px);margin-top:1vh;width:100%;max-width:900px}
+  td,th{padding:1.3vh 1.3vw;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.8em}
+  td:first-child{font-family:var(--mono);color:var(--gold);white-space:nowrap}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:2.2vw;margin-top:1vh;width:100%;max-width:900px}
+  .col{border:1px solid var(--border);border-radius:14px;padding:2.6vh 1.8vw}
+  .col.may{border-color:color-mix(in srgb,var(--purple) 40%,var(--border))}
+  .col.must{border-color:color-mix(in srgb,var(--red) 40%,var(--border))}
+  .col h3{font-size:clamp(15px,1.9vw,21px);margin-bottom:1.4vh}
+  .col.may h3{color:var(--purple)} .col.must h3{color:var(--red)}
+  .col ul{font-size:clamp(15px,2vw,22px)} .col li{margin:.9vh 0} .col li::before{content:"·"}
+  .flow{font-family:var(--mono);font-size:clamp(16px,2.4vw,27px);line-height:1.9;color:var(--text)}
+  .flow b{color:var(--gold)} .flow .r{color:var(--green)}
+  .code{font-family:var(--mono);font-size:clamp(13px,1.8vw,20px);line-height:1.7;text-align:left;
+    background:#0a0812;border:1px solid var(--border);border-radius:12px;padding:2.4vh 1.9vw;max-width:800px;width:100%;color:#cdd7e2;white-space:pre-wrap}
+  .code .c{color:var(--muted)} .code .a{color:var(--gold)} .code .s{color:var(--green)} .code .k{color:var(--purple)}
+  kbd{font-family:var(--mono);background:#161320;border:1px solid var(--border);border-bottom-width:2px;border-radius:6px;padding:1px 7px;font-size:.8em}
+  .foot{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;
+    padding:12px 22px;font-family:var(--mono);font-size:12px;color:var(--muted);background:linear-gradient(0deg,#0d0b14,transparent)}
+  .bar{position:fixed;left:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--green));transition:width .3s}
+</style>
+</head>
+<body>
+
+<!-- 1 -->
+<section class="slide on center">
+  <div class="kick">Week 5 · CEX</div>
+  <h1>Trading on a <span class="g">centralized exchange</span></h1>
+  <div class="note">The other half of the market — order books, driven by API. We'll use two examples: <b>OKX</b> (crypto) and <b>Alpaca</b> (US stocks).</div>
+</section>
+
+<!-- 2 · THE THEME, up front -->
+<section class="slide center">
+  <div class="kick">The theme · say it first</div>
+  <h2>CEX <span class="g">vs</span> DEX</h2>
+  <table>
+    <tr><th></th><th>DEX (on-chain · W2)</th><th>CEX (today)</th></tr>
+    <tr><td>match by</td><td>an AMM formula (x·y=k)</td><td>an order book + matching engine</td></tr>
+    <tr><td>your funds</td><td>in your wallet</td><td>sit on the exchange</td></tr>
+    <tr><td>you sign with</td><td>a private key</td><td>an <b>API key</b> (key + secret + passphrase)</td></tr>
+    <tr><td>settlement</td><td>a smart contract</td><td>the company's ledger</td></tr>
+    <tr><td>you trust</td><td>code</td><td>a company</td></tr>
+  </table>
+  <div class="note">The one new idea this week: an <b>API key is not a private key</b> — it's a scoped permission you can limit (trade-only) and revoke.</div>
+</section>
+
+<!-- 3 · what the week teaches -->
+<section class="slide">
+  <div class="kick">What this week is</div>
+  <h2>Learn to <span class="g">trade a CEX</span> by API</h2>
+  <ul>
+    <li><b>Place orders</b> — market &amp; limit</li>
+    <li><b>Check &amp; query</b> — balances, open orders, fills</li>
+    <li><b>Stream live</b> — WebSocket</li>
+    <li><b>The backtest concept</b> — test a strategy before risking it</li>
+    <li>one strategy we'll <span class="hi">highlight</span>: cash-and-carry</li>
+  </ul>
+  <div class="note">Examples run on <b>OKX</b> (crypto) and <b>Alpaca</b> (US stocks) — same API shape, two venues.</div>
+</section>
+
+<!-- 4 · safety -->
+<section class="slide center">
+  <div class="kick">The one safety rule · this week's floor</div>
+  <h2><span class="g">Demo / paper</span> only — never real funds</h2>
+  <ul style="text-align:left">
+    <li>OKX <b>Demo Trading</b> (crypto) · Alpaca <b>paper</b> (stocks) — fake money.</li>
+    <li>API key = <b>trade-only</b>. Withdrawal <b>off</b>. Even leaked, no one moves funds out.</li>
+    <li>IP-whitelist the key; key + secret in env only — never a repo, never the LLM.</li>
+  </ul>
+  <div class="note">On-chain we said "testnet only." Off-chain the fence is: <b>demo mode + a withdrawal-disabled key</b>.</div>
+</section>
+
+<!-- 5 · place an order -->
+<section class="slide center">
+  <div class="kick">Method 1 · place an order</div>
+  <h2>Market, limit, and the <span class="g">lifecycle</span></h2>
+  <div class="code"><span class="c"># the two orders you need first</span>
+place_order(<span class="s">"BTC-USDT"</span>, side=<span class="s">"buy"</span>, type=<span class="s">"market"</span>, sz=<span class="a">"0.001"</span>) <span class="c"># take now</span>
+place_order(<span class="s">"BTC-USDT"</span>, side=<span class="s">"buy"</span>, type=<span class="s">"limit"</span>, px=<span class="a">"60000"</span>) <span class="c"># wait</span>
+
+<span class="c"># lifecycle:</span> new <span class="k">→</span> live <span class="k">→</span> partially_filled <span class="k">→</span> filled / canceled</div>
+</section>
+
+<!-- 6 · check / query -->
+<section class="slide">
+  <div class="kick">Method 2 · check your state</div>
+  <h2>Query, and <span class="g">stream</span></h2>
+  <ul>
+    <li><b>REST</b> — ask on demand: balances, open orders, a fill's result.</li>
+    <li><b>WebSocket</b> — a live feed: prices, order-book, your fills the instant they happen.</li>
+  </ul>
+  <div class="note">Auth's three classic pitfalls (all real pain): ① IP whitelist · ② the timestamp + signature · ③ the required headers. Get these right and the rest is easy.</div>
+</section>
+
+<!-- 7 · backtest concept -->
+<section class="slide center">
+  <div class="kick">The concept · backtest</div>
+  <h2>Replay history <span class="g">before</span> you risk</h2>
+  <div class="big">Run a strategy over past data → see how it <i>would have</i> done — without spending a cent.</div>
+  <div class="note">But <b>backtest looks great, live slaps you</b>: fees, slippage, and whether both legs actually fill. Always discount the backtest.</div>
+</section>
+
+<!-- 8 · the highlighted strategy -->
+<section class="slide center">
+  <div class="kick">The highlighted strategy (one of many)</div>
+  <h2>Spot vs futures = the <span class="g">basis</span></h2>
+  <div class="big">A dated future trades off spot. At <b>expiry they must converge</b> — the wall. Long the cheap leg, short the dear one, hold to the wall → capture the basis.</div>
+  <div class="note">A clean, self-closing trade: the expiry <i>forces</i> convergence, no funding involved. (The perp / funding version is next week, on Hyperliquid.)</div>
+</section>
+
+<!-- 9 · real run -->
+<section class="slide center">
+  <div class="kick">We ran it · real OKX-demo numbers</div>
+  <h2>The fees <span class="g">ate it</span></h2>
+  <table>
+    <tr><td>open</td><td>spot 83,947 vs perp 83,698 · basis −0.30%</td></tr>
+    <tr><td>funding</td><td>−0.46</td></tr>
+    <tr><td>fees</td><td><b>−2.11</b></td></tr>
+    <tr><td>P&amp;L</td><td><b>−2.595 USDT</b></td></tr>
+  </table>
+  <div class="note">One real demo round, held ~2h, lost 2.6 USDT — the thin edge couldn't beat the fees. A dated-futures round (converging at expiry) is the clean W5 experiment to run; same honest lesson, a backtest hides it.</div>
+</section>
+
+<!-- 10 · hand to agent -->
+<section class="slide center">
+  <div class="kick">R5 · same ending, every week</div>
+  <h2>Hand it to <span class="g">Jarvis</span></h2>
+  <div class="two">
+    <div class="col may"><h3>Wrap as a SKILL.md</h3>
+      <ul><li>quote the basis from live prices</li><li>plan → wait for confirm → open both legs</li><li>watch funding → close on the rules</li></ul></div>
+    <div class="col must"><h3>The fence (CEX version)</h3>
+      <ul><li>trade-only key, withdrawal off</li><li>demo mode only</li><li>max order size + positions</li></ul></div>
+  </div>
+  <div class="note">Same pattern as W4 — a skill, a plan, a confirm, a fence. The <span class="term">okx-carry</span> skill already does this.</div>
+</section>
+
+<!-- 11 · bridge -->
+<section class="slide center">
+  <div class="kick">Bridge to W6</div>
+  <h2>No expiry? Then <span class="g">funding</span></h2>
+  <div class="big">Futures converge at a date — the wall. A <b>perpetual</b> has no wall; the <b>funding rate</b> is the force that pulls it back to spot.</div>
+  <div class="note">Next week, on Hyperliquid: the perp funding carry — the other way to trade a basis.</div>
+</section>
+
+<!-- 12 · wrap -->
+<section class="slide center">
+  <div class="kick">Wrap</div>
+  <h2>You can trade a <span class="g">CEX</span> now</h2>
+  <div class="big">Place orders · query state · backtest a strategy · hand one to the agent — on crypto (OKX) and stocks (Alpaca).</div>
+  <div class="note">Lab: on OKX Demo (or Alpaca paper) place an order, check the fill, and run one backtest.</div>
+</section>
+
+<div class="foot"><span>Week 5 · CEX — OKX &amp; Alpaca</span><span><kbd>←</kbd> <kbd>→</kbd> · <span id="num">1 / 12</span></span></div>
+<div class="bar" id="bar"></div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=0;
+  function show(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('on',k===i));
+    document.getElementById('num').textContent=(i+1)+' / '+slides.length;
+    document.getElementById('bar').style.width=((i+1)/slides.length*100)+'%';
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ') show(i+1);
+    else if(e.key==='ArrowLeft'||e.key==='PageUp') show(i-1);
+    else if(e.key==='Home') show(0); else if(e.key==='End') show(slides.length-1);
+  });
+  document.addEventListener('click',e=>{ if(e.clientX > window.innerWidth*0.35) show(i+1); else show(i-1); });
+  show(0);
+</script>
+</body>
+</html>
