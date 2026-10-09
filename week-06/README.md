@@ -8,10 +8,18 @@ The code here is the **Hyperliquid** half: read the on-chain order book and fund
 cancel orders, replay a strategy honestly, and run a two-leg **funding-carry** bot. Everything is
 **Hyperliquid testnet only**. Keys are read from local, gitignored files — never committed.
 
-> The prediction-market half of the lecture is taught through a hosted demo, not shipped here.
+The prediction-market half is included as a **minimal teaching skeleton** in
+`code/polymarket/` — just enough to show why *price = probability* and how a prediction
+market is a perpetual that settles once. The full hosted market is demoed in class.
 
 ## Slides
 - `slides/AI_Finance_Week6_Derivatives.html`
+
+## Prediction market (`code/polymarket/`)
+A tiny, self-contained YES/NO market: `prediction_market.py` (the engine) + `demo.py` (a
+runnable scenario). YES + NO = $1, the YES price is the probability, and the oracle settles
+once to 0 or 1 — the third of "one engine, three apps" (spot / perp / prediction). See
+`code/polymarket/README.md`.
 
 ## Code (`code/hyperliquid/`)
 
