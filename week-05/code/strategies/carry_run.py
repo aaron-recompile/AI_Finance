@@ -14,7 +14,7 @@ Export OKX_API_KEY / OKX_SECRET / OKX_PASSPHRASE first.
 import argparse, json, sys, time
 from datetime import datetime
 from pathlib import Path
-
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "okx"))
 from okx_client import req
 
 SPOT, SWAP = "BTC-USDT", "BTC-USDT-SWAP"

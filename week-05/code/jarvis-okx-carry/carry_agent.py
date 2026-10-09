@@ -22,8 +22,8 @@ import argparse, fcntl, json, os, secrets, sys, time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-# okx_client.py ships in the repo's code/ dir (HERE.parent). Allow OKX_CLIENT_DIR to override.
-for p in (HERE.parent, Path(os.environ.get("OKX_CLIENT_DIR", HERE.parent))):
+# okx_client.py ships in the repo's okx/ dir (../okx). Allow OKX_CLIENT_DIR to override.
+for p in (HERE.parent / "okx", Path(os.environ.get("OKX_CLIENT_DIR", HERE.parent / "okx"))):
     if (p / "okx_client.py").exists():
         sys.path.insert(0, str(p)); break
 KEYFILE = Path.home() / ".secrets" / "okx-demo.env"

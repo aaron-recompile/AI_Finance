@@ -16,7 +16,8 @@ Costs are assumptions (spot ~0.07% measured, perp taker ~0.05%, account rate not
 """
 import json, sys
 from datetime import datetime, timezone
-
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "okx"))
 from okx_client import req
 
 SPOT, SWAP = "BTC-USDT", "BTC-USDT-SWAP"

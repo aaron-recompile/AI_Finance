@@ -66,12 +66,12 @@
   <div class="kick">The theme · say it first</div>
   <h2>CEX <span class="g">vs</span> DEX</h2>
   <table>
-    <tr><th></th><th>DEX (on-chain · W2)</th><th>CEX (today)</th></tr>
-    <tr><td>match by</td><td>an AMM formula (x·y=k)</td><td>an order book + matching engine</td></tr>
-    <tr><td>your funds</td><td>in your wallet</td><td>sit on the exchange</td></tr>
-    <tr><td>you sign with</td><td>a private key</td><td>an <b>API key</b> (key + secret + passphrase)</td></tr>
-    <tr><td>settlement</td><td>a smart contract</td><td>the company's ledger</td></tr>
-    <tr><td>you trust</td><td>code</td><td>a company</td></tr>
+    <tr><th></th><th>CEX (today)</th><th>DEX (on-chain · W2)</th></tr>
+    <tr><td>match by</td><td>an order book + matching engine</td><td>an AMM formula (x·y=k)</td></tr>
+    <tr><td>your funds</td><td>sit on the exchange</td><td>in your wallet</td></tr>
+    <tr><td>you sign with</td><td>an <b>API key</b> (key + secret + passphrase)</td><td>a private key</td></tr>
+    <tr><td>settlement</td><td>the company's ledger</td><td>a smart contract</td></tr>
+    <tr><td>you trust</td><td>a company</td><td>code</td></tr>
   </table>
   <div class="note">The one new idea this week: an <b>API key is not a private key</b> — it's a scoped permission you can limit (trade-only) and revoke.</div>
 </section>
@@ -90,18 +90,6 @@
   <div class="note">Examples run on <b>OKX</b> (crypto) and <b>Alpaca</b> (US stocks) — same API shape, two venues.</div>
 </section>
 
-<!-- 4 · safety -->
-<section class="slide center">
-  <div class="kick">The one safety rule · this week's floor</div>
-  <h2><span class="g">Demo / paper</span> only — never real funds</h2>
-  <ul style="text-align:left">
-    <li>OKX <b>Demo Trading</b> (crypto) · Alpaca <b>paper</b> (stocks) — fake money.</li>
-    <li>API key = <b>trade-only</b>. Withdrawal <b>off</b>. Even leaked, no one moves funds out.</li>
-    <li>IP-whitelist the key; key + secret in env only — never a repo, never the LLM.</li>
-  </ul>
-  <div class="note">On-chain we said "testnet only." Off-chain the fence is: <b>demo mode + a withdrawal-disabled key</b>.</div>
-</section>
-
 <!-- 5 · place an order -->
 <section class="slide center">
   <div class="kick">Method 1 · place an order</div>
@@ -116,12 +104,12 @@ place_order(<span class="s">"BTC-USDT"</span>, side=<span class="s">"buy"</span>
 <!-- 6 · check / query -->
 <section class="slide">
   <div class="kick">Method 2 · check your state</div>
-  <h2>Query, and <span class="g">stream</span></h2>
+  <h2>Check your <span class="g">state</span></h2>
   <ul>
-    <li><b>REST</b> — ask on demand: balances, open orders, a fill's result.</li>
-    <li><b>WebSocket</b> — a live feed: prices, order-book, your fills the instant they happen.</li>
+    <li>Ask the exchange anytime — your <b>balances</b>, <b>open orders</b>, <b>positions</b>, and <b>fills</b>.</li>
+    <li>The program sees the <b>same account</b> you see in the web interface.</li>
   </ul>
-  <div class="note">Auth's three classic pitfalls (all real pain): ① IP whitelist · ② the timestamp + signature · ③ the required headers. Get these right and the rest is easy.</div>
+  <div class="note">Place an order in code, then query it — or just watch it pop up in the exchange's own UI.</div>
 </section>
 
 <!-- 7 · backtest concept -->

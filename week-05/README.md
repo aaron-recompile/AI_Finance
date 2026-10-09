@@ -12,23 +12,31 @@ Credentials are always read from your environment or the macOS keychain — neve
 
 ## Code (`code/`)
 
-Four beats, from "read a venue" to "hand the strategy to an agent":
+Grouped by what it does:
 
-| Beat | Files | What |
+| Folder | Files | What |
 |---|---|---|
-| Talk to OKX | `okx_client.py` · `okx_orders.py` · `okx_ws_listen.py` · `okx_history.py` | auth + REST orders + live WebSocket + history (demo market) |
-| The arbitrage | `carry.py` · `carry_run.py` | cash-and-carry: read-only analysis, then one real round on OKX demo |
-| A real result | `carry_done_1790814573.json` | an actual round we ran — see below |
-| Hand to an agent | `jarvis-okx-carry/` | the same flow wrapped as an OpenClaw skill: plan → a 6-digit token → human says `CONFIRM` → execute, demo only, with guardrails |
-| US stocks, same moves | `alpaca/` | the same read/place/amend/cancel pattern on Alpaca paper (stocks + crypto) |
+| `okx/` | `okx_client` · `okx_orders` · `okx_ws_listen` · `okx_history` | basic OKX operations: auth + REST orders + live WebSocket + history (demo market) |
+| `strategies/` | `trend_follow` · `mean_reversion` · `cash_and_carry` · `carry_run` | three strategies — two **bet on direction** (trend-following, mean-reversion), one is **market-neutral** (cash-and-carry). `carry_run` trades one real carry round on OKX demo. |
+| `alpaca/` | `alpaca_client` · `alpaca_orders` · `alpaca_read` · `alpaca_env.sh` | the same read / place / amend / cancel pattern on Alpaca paper (stocks + crypto) |
+| `jarvis-okx-carry/` | `carry_agent` · `carry_gate` · `skill/` | the carry handed to an OpenClaw agent: plan → a 6-digit token → human says `CONFIRM` → execute, demo only, with guardrails |
 
-Set up credentials first:
-- OKX: export `OKX_API_KEY` / `OKX_SECRET` / `OKX_PASSPHRASE` (demo keys).
+The three simple strategies run on public data with **no key** — just `cd strategies` then:
+```
+python3 trend_follow.py        # hold above the 50-day MA (crash insurance)
+python3 mean_reversion.py      # buy oversold, sell the bounce (RSI(2))
+python3 cash_and_carry.py      # long spot + short perp = market-neutral, earn funding
+```
+Trend and mean-reversion bet on **price direction**; cash-and-carry does **not** — it nets the
+funding rate while staying delta-neutral.
+
+Set up credentials to place orders:
+- OKX: export `OKX_API_KEY` / `OKX_SECRET` / `OKX_PASSPHRASE` (demo keys). Used by `okx/okx_orders.py` and `strategies/carry_run.py`.
 - Alpaca: `source alpaca/alpaca_env.sh` (pulls a paper key from the macOS keychain).
 
 ## The real carry round (the teaching gold)
 
-`carry_done_*.json` is one actual round on OKX demo: long 0.0119 BTC spot + short 1.19
+`strategies/carry_done_*.json` is one actual round on OKX demo: long 0.0119 BTC spot + short 1.19
 BTC-USDT-SWAP contracts, closed ~2 hours later.
 
 - **result = −2.595 USDT** (funding **−0.46**, fees **−2.11**)
