@@ -1,0 +1,10 @@
+# secrets — never commit
+.env
+.agent.env
+# runtime state
+carry_state.json
+carry_log.csv
+.carry.lock
+.funding_run.json
+STOP
+__pycache__/
