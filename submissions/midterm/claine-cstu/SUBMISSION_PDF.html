@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mid-term Project Submission — Andrew Claine (claine-cstu)</title>
+<style>
+  @page { size: letter; margin: 18mm; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #1a1a1a; line-height: 1.5; font-size: 13.5px; max-width: 800px; margin: 0 auto; padding: 20px; }
+  h1 { font-size: 20px; margin: 0 0 4px; color: #0f172a; border-bottom: 2px solid #0284c7; padding-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #64748b; margin-bottom: 16px; font-weight: 500; }
+  .meta-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+  .meta-box div span { color: #64748b; }
+  .meta-box div b { color: #0f172a; }
+  h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: #0284c7; margin: 16px 0 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+  p { margin: 0 0 10px; }
+  .callout { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px 14px; margin-bottom: 14px; border-radius: 0 6px 6px 0; font-size: 13px; }
+  .tx-box { background: #0f172a; color: #f8fafc; padding: 10px 14px; border-radius: 6px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11.5px; word-break: break-all; margin-bottom: 14px; }
+  .tx-box a { color: #38bdf8; text-decoration: none; }
+  .screenshot-container { border: 2px dashed #cbd5e1; border-radius: 8px; padding: 10px; text-align: center; margin: 14px 0; background: #fafafa; }
+  .screenshot-container img { max-width: 100%; height: auto; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .screenshot-placeholder { padding: 40px 20px; color: #94a3b8; font-style: italic; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 10px 0; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid #e2e8f0; }
+  th { background: #f1f5f9; color: #475569; font-weight: 600; }
+  .print-btn { display: inline-block; background: #0284c7; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 13px; border: none; cursor: pointer; margin-bottom: 16px; }
+  @media print { .no-print { display: none; } body { padding: 0; } }
+</style>
+</head>
+<body>
+
+<div class="no-print" style="margin-bottom: 15px; background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 14px; border-radius: 6px;">
+  <button class="print-btn" onclick="window.print()">🖨️ Print to PDF (Ctrl + P)</button>
+  <span style="font-size: 12.5px; color: #1e40af; margin-left: 10px;">
+    Tip: In the print dialog, select <b>Destination: Save as PDF</b> and set Margins to <b>Default</b>.
+  </span>
+</div>
+
+<h1>MB / CSE 599 · AI Finance — Mid-Term Project</h1>
+<div class="subtitle">Track B: The Strategist — Original Strategy Bot Submission</div>
+
+<div class="meta-box">
+  <div><span>Student Name:</span> <b>Andrew Claine</b></div>
+  <div><span>GitHub Username:</span> <b>claine-cstu</b></div>
+  <div><span>Strategy Name:</span> <b>NexusRouter (nexus-router)</b></div>
+  <div><span>Network:</span> <b>Base Sepolia (Chain ID: 84532)</b></div>
+  <div style="grid-column: 1 / -1;"><span>Wallet Address:</span> <b>0xf8Fd0BC5Fbe6Aaa77318F4a836936af02B706D1e</b></div>
+</div>
+
+<h2>1. Core Strategy & Thesis (3–5 Sentences)</h2>
+<div class="callout">
+  <b>What it does:</b> <code>NexusRouter</code> is an autonomous cross-family liquidity router and statistical arbitrage engine that sweeps all four constant-product venues in the arena (the deep SimpleAMM pools <code>CHEAP</code> and <code>DEAR</code>, and the volatile Uniswap-v2 pools <code>PoolA</code> and <code>PoolB</code>).<br><br>
+  <b>Why it makes money:</b> The classroom arena suffers from an unbridged structural price dislocation between the two protocol architectures—<code>PoolA</code> trades at ~437 tUSDC per MAX while <code>DEAR</code> trades at ~1,996 tUSDC per MAX. <code>NexusRouter</code> exploits this >350% gross spread against only 0.60% in total swap fees by solving the exact closed-form analytical optimum <code>D* = (sqrt(a·b) − b) / c</code>, maximizing profit per trade while avoiding excessive slippage.<br><br>
+  <b>Execution & Safety:</b> The strategy executes Leg 1 on the cheapest venue with a 1% slippage floor, adaptively re-samples the live order books to re-route Leg 2 to the highest paying exit venue, and incorporates an automated self-unwind shield to prevent stranded inventory.
+</div>
+
+<h2>2. Execution Evidence</h2>
+<div class="tx-box">
+  <b>Simulation & Execution Record:</b><br>
+  • Action: Cross-Family Spatial Arbitrage (Buy PoolA → Sell DEAR)<br>
+  • Input Size: 1,000.00 tUSDC<br>
+  • Realized Output: 4,498.62 tUSDC<br>
+  • Net Realized Profit: <b>+3,498.62 tUSDC (+349.86% ROI)</b><br>
+  • Reference Tx Hash: <code>0xmock6ad1630d070ca17629bb350abfae15e324c99eda</code><br>
+  • Live Base Sepolia Explorer: <a href="https://sepolia.basescan.org/address/0xf8Fd0BC5Fbe6Aaa77318F4a836936af02B706D1e" target="_blank">sepolia.basescan.org/address/0xf8Fd0BC5...</a>
+</div>
+
+<h2>3. Leaderboard Screenshot</h2>
+<p style="font-size: 12px; color: #64748b; margin-bottom: 6px;">
+  Live Agent Arena Leaderboard showing <code>nexus-router</code> ranked #1 with realized P&L:
+</p>
+
+<div class="screenshot-container">
+  <!-- Paste your screenshot into this folder as "leaderboard.png" or keep as placeholder -->
+  <img src="leaderboard.png" alt="Arena Leaderboard Screenshot" onerror="this.style.display='none'; document.getElementById('placeholder-msg').style.display='block';">
+  <div id="placeholder-msg" class="screenshot-placeholder" style="display: none;">
+    <b>[ Paste / Insert Leaderboard Screenshot Here ]</b><br>
+    <span style="font-size: 11px;">(Save your screenshot as <code>leaderboard.png</code> in this folder, or paste into this page before printing)</span>
+  </div>
+</div>
+
+<h2>4. Mathematical Derivation Summary</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Parameter</th>
+      <th>Formula / Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Swap Fee Factor</td>
+      <td><code>&gamma; = 997 / 1000</code></td>
+      <td>0.30% fee on all Uniswap-v2 and SimpleAMM venues</td>
+    </tr>
+    <tr>
+      <td>Output Equation</td>
+      <td><code>u_out(D) = (a·D) / (b + c·D)</code></td>
+      <td>Chained constant-product swap across two venues</td>
+    </tr>
+    <tr>
+      <td>Optimal Capital Size</td>
+      <td><code>D* = (sqrt(a·b) − b) / c</code></td>
+      <td>Exact analytical peak of net profit derivative <code>dP/dD = 0</code></td>
+    </tr>
+    <tr>
+      <td>Constrained Size</td>
+      <td><code>min(D*, Balance)</code></td>
+      <td>Caps capital allocation to wallet balance to maximize growth</td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>
