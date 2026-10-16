@@ -1,0 +1,15 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+
+# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+
+# Named RPC so you can use  --rpc-url base-sepolia
+[rpc_endpoints]
+base-sepolia = "https://base-sepolia-rpc.publicnode.com"
+
+# Source verification on BaseScan. The API key is read from the environment
+# (export BASESCAN_API_KEY=...), never stored in this file.
+[etherscan]
+base-sepolia = { key = "${BASESCAN_API_KEY}", chain = 84532, url = "https://api.etherscan.io/v2/api?chainid=84532" }

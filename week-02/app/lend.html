@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class Lend · AI Finance</title>
+<style>
+  :root{--bg:#0d0b14;--card:#161320;--card2:#1e1a2b;--border:#2c2740;--text:#f4f1fb;--muted:#9a92b3;
+    --pink:#ff2e88;--purple:#8b5cf6;--green:#4ade80;--gold:#fbbf24;--red:#ff7b72;--blue:#60a5fa;--mono:ui-monospace,Menlo,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:radial-gradient(1200px 700px at 80% -10%,#1a1330,var(--bg));
+    color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:18px}
+  .wrap{max-width:470px;margin:0 auto}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .brand{font-weight:800;font-size:18px}.brand span{background:linear-gradient(90deg,var(--blue),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
+  button{font-family:inherit;cursor:pointer;border:0;border-radius:12px;font-weight:700}
+  .btn-conn{background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff;padding:9px 15px;font-size:13.5px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:15px;margin-bottom:11px}
+  .field{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:9px 12px;margin:6px 0}
+  .field input{background:transparent;border:0;color:var(--text);font-size:19px;font-weight:700;width:70%;outline:none}
+  .field .row{display:flex;justify-content:space-between;align-items:center}
+  .field label{font-size:11px;color:var(--muted)}
+  .maxbtn{background:var(--card);border:1px solid var(--border);color:var(--purple);padding:4px 9px;font-size:11px;border-radius:8px}
+  .act{width:100%;padding:11px;font-size:14px;margin-top:5px}
+  .primary{background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff}
+  .ghost{background:var(--card2);border:1px solid var(--border);color:var(--text)}
+  .gold{background:linear-gradient(90deg,var(--gold),#f59e0b);color:#241a00}
+  .row2{display:flex;gap:7px}.row2 .act{flex:1}
+  .stat{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin:4px 0}
+  .stat b{color:var(--text);font-family:var(--mono)}
+  .hf b{font-size:15px}
+  h3{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px}
+  .log{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:7px;word-break:break-all;min-height:13px}
+  .log a{color:var(--purple)}
+  .teach{background:color-mix(in srgb,var(--gold) 9%,transparent);border:1px solid color-mix(in srgb,var(--gold) 32%,var(--border));border-radius:10px;padding:9px 12px;margin-top:9px;font-size:11.5px;color:var(--muted);line-height:1.5}
+  .teach b{color:var(--gold)}
+  .mono{font-family:var(--mono)}
+  .mintrow{display:flex;gap:7px;flex-wrap:wrap}.mintrow button{flex:1;background:var(--card2);border:1px solid var(--border);color:var(--text);padding:8px;font-size:11.5px;min-width:80px}
+  .footer{text-align:center;font-size:10.5px;color:var(--muted);margin-top:8px}.footer a{color:var(--muted)}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">🏦 <span>Class Lend</span> <span style="color:var(--muted);font-weight:500;font-size:12px">AI Finance · Aave/Compound-lite</span></div>
+    <button id="connect" class="btn-conn">Connect</button>
+  </div>
+
+  <div class="card">
+    <h3>Market — supply/borrow tUSDC · collateral tETH</h3>
+    <div class="stat"><span>Price (1 tETH)</span><b id="mPrice">—</b></div>
+    <div class="stat"><span>Cash available to borrow</span><b id="mCash">—</b></div>
+    <div class="stat"><span>Utilization</span><b id="mUtil">—</b></div>
+    <div class="stat"><span>Supply APR</span><b id="mSupApr">—</b></div>
+    <div class="stat"><span>Borrow APR</span><b id="mBorApr">—</b></div>
+  </div>
+
+  <div class="card">
+    <h3>Your position</h3>
+    <div class="stat"><span>Supplied (earning)</span><b id="pSupplied">—</b></div>
+    <div class="stat"><span>Collateral posted</span><b id="pColl">—</b></div>
+    <div class="stat"><span>Debt (grows with interest)</span><b id="pDebt">—</b></div>
+    <div class="stat"><span>Borrowing power left</span><b id="pMax">—</b></div>
+    <div class="stat hf"><span>Health factor (&lt;1 = liquidatable)</span><b id="pHF">—</b></div>
+  </div>
+
+  <div class="card">
+    <h3>① Supply / Withdraw tUSDC (be the lender)</h3>
+    <div class="field"><div class="row"><input id="supAmt" type="text" inputmode="decimal" placeholder="0.0"><button class="maxbtn" onclick="setMax('supAmt','tusdcWallet')">MAX</button></div><label>wallet: <span id="tusdcWallet">—</span></label></div>
+    <div class="row2"><button class="act primary" onclick="doSupply()">Supply</button><button class="act ghost" onclick="doWithdraw()">Withdraw</button></div>
+    <div class="log" id="logSup"></div>
+  </div>
+
+  <div class="card">
+    <h3>② Collateral: post / withdraw tETH</h3>
+    <div class="field"><div class="row"><input id="colAmt" type="text" inputmode="decimal" placeholder="0.0"><button class="maxbtn" onclick="setMax('colAmt','tethWallet')">MAX</button></div><label>wallet: <span id="tethWallet">—</span></label></div>
+    <div class="row2"><button class="act primary" onclick="doPostColl()">Post collateral</button><button class="act ghost" onclick="doWithdrawColl()">Withdraw collateral</button></div>
+    <div class="log" id="logCol"></div>
+  </div>
+
+  <div class="card">
+    <h3>③ Borrow / Repay tUSDC</h3>
+    <div class="field"><div class="row"><input id="borAmt" type="text" inputmode="decimal" placeholder="0.0"><button class="maxbtn" onclick="fillMaxBorrow()">MAX</button></div><label>borrowing power: <span id="powLbl">—</span></label></div>
+    <div class="row2"><button class="act primary" onclick="doBorrow()">Borrow</button><button class="act ghost" onclick="doRepay()">Repay</button></div>
+    <div class="log" id="logBor"></div>
+    <div class="teach">💡 Borrow ≤ collateral × price × 0.75. Debt then grows every block by the borrow rate. If tETH price falls (or debt grows) until <b>Health factor &lt; 1</b>, anyone can liquidate you.</div>
+  </div>
+
+  <div class="card">
+    <h3>④ Liquidate someone (keeper)</h3>
+    <div class="field"><div class="row"><input id="liqUser" type="text" placeholder="borrower address 0x…" style="font-size:13px" oninput="checkLiqHF()"></div><label>target HF: <span id="liqHF">—</span> · only works if &lt; 1</label></div>
+    <div class="field"><div class="row"><input id="liqAmt" type="text" inputmode="decimal" placeholder="tUSDC to repay"></div></div>
+    <button class="act gold" onclick="doLiquidate()">Repay their debt &amp; seize tETH (+10%)</button>
+    <div class="log" id="logLiq"></div>
+  </div>
+
+  <div class="card" id="ownerCard" hidden style="border-color:color-mix(in srgb,var(--gold) 40%,var(--border))">
+    <h3 style="color:var(--gold)">⚙︎ Owner only — set tETH price (the oracle)</h3>
+    <div class="field"><div class="row"><input id="prAmt" type="text" inputmode="decimal" placeholder="e.g. 1600"></div><label>drop it to push borrowers underwater → demo liquidation</label></div>
+    <button class="act gold" onclick="doSetPrice()">Set price</button>
+    <div class="log" id="logPr"></div>
+  </div>
+
+  <div class="card">
+    <h3>Test tokens</h3>
+    <div class="mintrow">
+      <button onclick="mint(ASSET)">+1000 tUSDC</button>
+      <button onclick="mint(COLL)">+1000 tETH</button>
+      <button onclick="watch(ASSET,'tUSDC')">Import tUSDC</button>
+      <button onclick="watch(COLL,'tETH')">Import tETH</button>
+    </div>
+    <div class="log" id="logMint"></div>
+  </div>
+
+  <div class="footer"><b>MB/CSE 599 · AI Finance</b> — teaching demo · Base Sepolia · <a id="scanP" target="_blank">LendingPool</a></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
+<script>
+const RPC="https://base-sepolia-rpc.publicnode.com", CHAIN=84532, CHAIN_HEX="0x14a34";
+const POOL ="0x94654565F27FCBc2c43a6186A32e3f4bCB1C1F7D";
+const ASSET="0x6797beC4DC1D4444Fe81790c47e9FB91e491Ac69"; // tUSDC
+const COLL ="0x87637BD469Aaec82190286a9864cFF16c1127a42"; // tETH
+const DEC=18;
+const ERC20_ABI=["function balanceOf(address) view returns (uint256)","function allowance(address,address) view returns (uint256)","function approve(address,uint256) returns (bool)","function mint(address,uint256)"];
+const POOL_ABI=[
+  "function supply(uint256)","function withdraw(uint256)","function postCollateral(uint256)","function withdrawCollateral(uint256)",
+  "function borrow(uint256)","function repay(uint256)","function liquidate(address,uint256)","function setPrice(uint256)",
+  "function balanceOfUnderlying(address) view returns (uint256)","function collateralOf(address) view returns (uint256)",
+  "function currentDebt(address) view returns (uint256)","function healthFactor(address) view returns (uint256)",
+  "function maxBorrow(address) view returns (uint256)","function cash() view returns (uint256)","function utilization() view returns (uint256)",
+  "function supplyAPR() view returns (uint256)","function borrowAPR() view returns (uint256)","function price() view returns (uint256)","function owner() view returns (address)"
+];
+const readP=new ethers.JsonRpcProvider(RPC);
+let signer=null, me=null, lastMaxBorrow=0n;
+const $=id=>document.getElementById(id);
+const f=(v,d=4)=>Number(ethers.formatUnits(v,DEC)).toLocaleString(undefined,{maximumFractionDigits:d});
+const pct=v=>(Number(ethers.formatUnits(v,DEC))*100).toFixed(2)+"%";
+function log(id,t){$(id).innerHTML=t;}
+function tx(h){return `<a target="_blank" href="https://sepolia.basescan.org/tx/${h}">${h.slice(0,10)}…</a>`;}
+$("scanP").href="https://sepolia.basescan.org/address/"+POOL;
+
+async function connect(){
+  if(!window.ethereum){ alert("MetaMask required"); return; }
+  const cid=await window.ethereum.request({method:"eth_chainId"});
+  if(parseInt(cid,16)!==CHAIN){ try{ await window.ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:CHAIN_HEX}]}); }
+    catch(e){ await window.ethereum.request({method:"wallet_addEthereumChain",params:[{chainId:CHAIN_HEX,chainName:"Base Sepolia",nativeCurrency:{name:"ETH",symbol:"ETH",decimals:18},rpcUrls:[RPC],blockExplorerUrls:["https://sepolia.basescan.org"]}]}); } }
+  signer=await new ethers.BrowserProvider(window.ethereum).getSigner(); me=await signer.getAddress();
+  $("connect").textContent=me.slice(0,6)+"…"+me.slice(-4);
+  try{ const o=await new ethers.Contract(POOL,POOL_ABI,readP).owner(); $("ownerCard").hidden=(o.toLowerCase()!==me.toLowerCase()); }catch(e){}
+  refresh();
+}
+$("connect").onclick=connect;
+
+async function refresh(){
+  try{
+    const p=new ethers.Contract(POOL,POOL_ABI,readP);
+    const [price,cash,util,sApr,bApr]=await Promise.all([p.price(),p.cash(),p.utilization(),p.supplyAPR(),p.borrowAPR()]);
+    $("mPrice").textContent=f(price,2)+" tUSDC";
+    $("mCash").textContent=f(cash,2)+" tUSDC";
+    $("mUtil").textContent=pct(util);
+    $("mSupApr").textContent=pct(sApr);
+    $("mBorApr").textContent=pct(bApr);
+    if(me){
+      const a=new ethers.Contract(ASSET,ERC20_ABI,readP), c=new ethers.Contract(COLL,ERC20_ABI,readP);
+      const [sup,col,debt,hf,mb,aw,cw]=await Promise.all([
+        p.balanceOfUnderlying(me),p.collateralOf(me),p.currentDebt(me),p.healthFactor(me),p.maxBorrow(me),a.balanceOf(me),c.balanceOf(me)]);
+      lastMaxBorrow=mb;
+      $("pSupplied").textContent=f(sup)+" tUSDC";
+      $("pColl").textContent=f(col)+" tETH";
+      $("pDebt").textContent=f(debt)+" tUSDC";
+      $("pMax").textContent=f(mb)+" tUSDC";
+      $("powLbl").textContent=f(mb)+" tUSDC";
+      $("tusdcWallet").textContent=f(aw)+" tUSDC";
+      $("tethWallet").textContent=f(cw)+" tETH";
+      // health factor with color + ∞
+      const hfn=Number(ethers.formatUnits(hf,DEC));
+      let s,col2; if(hfn>1e6){s="∞";col2="var(--green)";}else{s=hfn.toFixed(2);col2=hfn<1?"var(--red)":hfn<1.5?"var(--gold)":"var(--green)";}
+      $("pHF").innerHTML=`<b style="color:${col2}">${s}</b>`;
+    }
+  }catch(e){}
+}
+setInterval(()=>{refresh();checkLiqHF();},4000);
+
+function parse(id){ const v=$(id).value.trim(); if(!v||isNaN(v)||Number(v)<=0) return null; return ethers.parseUnits(v,DEC); }
+function setMax(inId,balId){ $(inId).value=$(balId).textContent.replace(/[^0-9.]/g,""); }
+function fillMaxBorrow(){ $("borAmt").value=ethers.formatUnits(lastMaxBorrow,DEC); }
+async function ensureAllow(token,amount,logId){
+  const t=new ethers.Contract(token,ERC20_ABI,signer);
+  if(await t.allowance(me,POOL) < amount){ log(logId,"approving…"); await (await t.approve(POOL,ethers.MaxUint256)).wait(); }
+}
+async function run(logId,fn,okMsg){
+  if(!signer){ alert("Connect wallet first"); return; }
+  try{ const t=await fn(); log(logId,okMsg+" "+tx(t.hash)); await t.wait(); log(logId,okMsg+" ✓"); refresh(); }
+  catch(e){ log(logId,"failed: "+(e.shortMessage||e.message)); }
+}
+const pool=()=>new ethers.Contract(POOL,POOL_ABI,signer);
+
+async function doSupply(){ const a=parse("supAmt"); if(!a)return log("logSup","enter amount"); await ensureAllow(ASSET,a,"logSup"); run("logSup",()=>pool().supply(a),"supplied"); }
+async function doWithdraw(){ const a=parse("supAmt"); if(!a)return log("logSup","enter amount"); run("logSup",()=>pool().withdraw(a),"withdrew"); }
+async function doPostColl(){ const a=parse("colAmt"); if(!a)return log("logCol","enter amount"); await ensureAllow(COLL,a,"logCol"); run("logCol",()=>pool().postCollateral(a),"collateral posted"); }
+async function doWithdrawColl(){ const a=parse("colAmt"); if(!a)return log("logCol","enter amount"); run("logCol",()=>pool().withdrawCollateral(a),"collateral withdrawn"); }
+async function doBorrow(){ const a=parse("borAmt"); if(!a)return log("logBor","enter amount"); run("logBor",()=>pool().borrow(a),"borrowed"); }
+async function doRepay(){ const a=parse("borAmt"); if(!a)return log("logBor","enter amount"); await ensureAllow(ASSET,a,"logBor"); run("logBor",()=>pool().repay(a),"repaid"); }
+async function checkLiqHF(){
+  const u=$("liqUser").value.trim();
+  if(!ethers.isAddress(u)){ $("liqHF").textContent="—"; return; }
+  try{
+    const hf=await new ethers.Contract(POOL,POOL_ABI,readP).healthFactor(u);
+    const n=Number(ethers.formatUnits(hf,DEC));
+    if(n>1e6){ $("liqHF").innerHTML=`<span style="color:var(--green)">∞ healthy — can't liquidate</span>`; }
+    else{ $("liqHF").innerHTML=`<span style="color:${n<1?'var(--red)':'var(--green)'}">${n.toFixed(2)} ${n<1?'✓ liquidatable':'healthy'}</span>`; }
+  }catch(e){ $("liqHF").textContent="—"; }
+}
+async function doLiquidate(){ const u=$("liqUser").value.trim(); const a=parse("liqAmt"); if(!ethers.isAddress(u))return log("logLiq","valid borrower address?"); if(!a)return log("logLiq","enter repay amount"); await ensureAllow(ASSET,a,"logLiq"); run("logLiq",()=>pool().liquidate(u,a),"liquidated"); }
+async function doSetPrice(){ const a=parse("prAmt"); if(!a)return log("logPr","enter price"); run("logPr",()=>pool().setPrice(a),"price set"); }
+async function mint(addr){ if(!signer){alert("Connect first");return;} const s=addr===ASSET?"tUSDC":"tETH"; run("logMint",()=>new ethers.Contract(addr,ERC20_ABI,signer).mint(me,ethers.parseUnits("1000",DEC)),"+1000 "+s); }
+async function watch(addr,sym){ try{ await window.ethereum.request({method:"wallet_watchAsset",params:{type:"ERC20",options:{address:addr,symbol:sym,decimals:18}}}); }catch(e){} }
+
+if(window.ethereum){ window.ethereum.on&&window.ethereum.on("accountsChanged",()=>location.reload()); window.ethereum.on&&window.ethereum.on("chainChanged",()=>location.reload()); }
+refresh();
+</script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Callable Vending Machine</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --card:#ffffff; --ink:#161b26; --muted:#5b6472; --line:#dde2ea;
+    --eoa:#2563eb; --bot:#7c3aed; --machine:#0f766e; --ok:#16a34a; --bad:#dc2626;
+    --glass:#e6f7f4; --metal:#c9d2dc; --metal2:#aeb9c6; --flash:#fde68a; --accent:#111827;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#0e1116; --card:#171b22; --ink:#e6e9ef; --muted:#9aa4b2; --line:#2a303a;
+    --eoa:#60a5fa; --bot:#a78bfa; --machine:#2dd4bf; --ok:#4ade80; --bad:#f87171;
+    --glass:#0c2d2a; --metal:#2b333f; --metal2:#3a4350; --flash:#4d451f; --accent:#e6e9ef;
+  }}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,Segoe UI,Roboto,"PingFang SC",sans-serif}
+  .wrap{max-width:940px;margin:0 auto;padding:22px 18px 60px}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .stage{display:grid;grid-template-columns:1fr 1.15fr;gap:20px;align-items:start}
+  @media(max-width:720px){.stage{grid-template-columns:1fr}}
+
+  /* callers */
+  .callers{display:flex;flex-direction:column;gap:12px}
+  .caller{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:14px;transition:.2s}
+  .caller.flash{box-shadow:0 0 0 4px var(--flash)}
+  .caller .who{font-weight:700;display:flex;align-items:center;gap:8px}
+  .caller.eoa .who{color:var(--eoa)} .caller.bot .who{color:var(--bot)}
+  .caller .kind{font:11px/1 ui-monospace,Menlo,monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .caller .coins{font:13px ui-monospace,Menlo,monospace;color:var(--muted);margin:6px 0 10px}
+  .callbtn{width:100%;font:inherit;font-weight:700;border:1px solid var(--accent);background:var(--accent);color:var(--bg);
+    padding:10px;border-radius:10px;cursor:pointer}
+  .callbtn:disabled{opacity:.4;cursor:not-allowed}
+  .callsig{font:12px ui-monospace,Menlo,monospace;color:var(--muted);margin-top:8px;text-align:center}
+
+  /* the machine */
+  .machine{background:linear-gradient(180deg,var(--metal),var(--metal2));border:3px solid var(--line);
+    border-radius:20px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+  .mtop{display:flex;justify-content:space-between;align-items:center;color:#0b1220;margin-bottom:10px}
+  .mtitle{font-weight:800;letter-spacing:.02em}
+  .mtag{font:11px/1 ui-monospace,Menlo,monospace;background:#0b1220;color:#e6e9ef;padding:4px 8px;border-radius:999px}
+  .window{background:var(--glass);border:6px solid #0b1220;border-radius:12px;padding:12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .slot{background:var(--card);border:2px solid var(--line);border-radius:10px;padding:10px;text-align:center;cursor:pointer;
+    transition:.15s;position:relative}
+  .slot:hover{border-color:var(--machine)}
+  .slot.sel{border-color:var(--machine);box-shadow:0 0 0 3px color-mix(in srgb,var(--machine) 30%,transparent)}
+  .slot .emoji{font-size:34px;line-height:1;display:block;transition:transform .35s}
+  .slot .code{font:11px ui-monospace,Menlo,monospace;color:var(--muted)}
+  .slot .price{font-weight:700}
+  .slot .stock{font:11px ui-monospace,Menlo,monospace;color:var(--muted)}
+  .slot.out{opacity:.4}
+  .slot.dispense .emoji{transform:translateY(70px) scale(.8);opacity:0}
+
+  .tray{margin-top:12px;background:#0b1220;border-radius:10px;min-height:64px;display:flex;align-items:center;
+    justify-content:center;gap:10px;padding:8px;color:#e6e9ef;font:13px ui-monospace,Menlo,monospace}
+  .tray .drop{font-size:34px;animation:drop .5s ease}
+  @keyframes drop{from{transform:translateY(-40px);opacity:0}to{transform:none;opacity:1}}
+  .tray .change{color:#fbbf24}
+
+  .rule{font:12px/1.5 ui-monospace,Menlo,monospace;color:var(--muted);background:transparent;border:1px dashed var(--line);
+    border-radius:8px;padding:9px 11px;margin:12px 0 0}
+  .rule b{color:var(--ink)}
+
+  .log{grid-column:1/-1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+    font:13px/1.7 ui-monospace,Menlo,monospace;min-height:96px;white-space:pre-wrap;margin-top:4px}
+  .log .call{color:var(--bot)} .log .give{color:var(--ok)} .log .bad{color:var(--bad);font-weight:700}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:16px 0 4px}
+  button.ghost{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink);
+    padding:8px 12px;border-radius:10px;cursor:pointer}
+  .note{grid-column:1/-1;color:var(--muted);font-size:13px;margin-top:8px}
+  .owner{grid-column:1/-1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:6px}
+  .owner label{display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer}
+  .owner .hint{color:var(--muted);font-size:13px;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>A smart contract is a vending machine you can <em>call</em></h1>
+  <p class="sub">Pick an item, then let a caller <b>call <code>buy(slot, coins)</code></b>. The coin goes in, the item drops out, change comes back — by one fixed public rule. A <b>human wallet</b> and <b>another contract</b> call it exactly the same way. That's the whole idea.</p>
+
+  <div class="controls">
+    <button class="ghost" id="resetBtn">↺ Reset & restock</button>
+    <span class="sub" id="status" style="margin:0"></span>
+  </div>
+
+  <div class="stage">
+    <!-- callers -->
+    <div class="callers">
+      <div class="caller eoa" id="cEoa">
+        <div class="who">👛 You <span class="kind">· EOA (human wallet)</span></div>
+        <div class="coins">coins: <b id="eoaCoins">20</b></div>
+        <button class="callbtn" data-caller="eoa">▶ You call buy()</button>
+        <div class="callsig" id="eoaSig">buy(🥤, 5)</div>
+      </div>
+      <div class="caller bot" id="cBot">
+        <div class="who">🤖 SnackBot <span class="kind">· Contract (another machine)</span></div>
+        <div class="coins">coins: <b id="botCoins">20</b></div>
+        <button class="callbtn" data-caller="bot">▶ SnackBot calls buy()</button>
+        <div class="callsig" id="botSig">buy(🥤, 5)</div>
+      </div>
+      <p class="sub" style="font-size:13px;margin:2px 2px 0">Same door for both. The machine can't tell — and doesn't care — whether a person or a program is calling. No login, no account, no permission list.</p>
+    </div>
+
+    <!-- machine -->
+    <div class="machine">
+      <div class="mtop"><span class="mtitle">🥨 SNAX-9000</span><span class="mtag">CONTRACT · deployed, immutable</span></div>
+      <div class="window">
+        <div class="grid" id="grid"></div>
+      </div>
+      <div class="tray" id="tray">tray: (empty)</div>
+      <div class="rule">
+        <b>function buy(slot, coins):</b><br>
+        &nbsp;&nbsp;require(coins &gt;= price[slot] &amp;&amp; stock[slot] &gt; 0)<br>
+        &nbsp;&nbsp;stock[slot] -= 1; <b>give(slot)</b>; <b>return</b> coins - price[slot]<br>
+        <span style="opacity:.7">// public, fixed, same for every caller — no "owner" branch</span>
+      </div>
+    </div>
+
+    <div class="log" id="log">Call log will appear here…</div>
+
+    <div class="owner">
+      <label><input type="checkbox" id="trusted" /> 🔓 Pretend it's a normal server (a human operator behind the counter)</label>
+      <div class="hint" id="ownerHint">Off = real contract: the rule above is the whole behavior; a paid caller <b>always</b> gets the item. Turn it on to reveal a “keep the coins, give nothing” button — the thing only a human-in-the-loop can do.</div>
+      <div id="ownerBox" style="margin-top:10px;display:none">
+        <button class="ghost" id="rugBtn" style="border-color:var(--bad);color:var(--bad)">😈 Operator: take coins, don't dispense</button>
+      </div>
+    </div>
+
+    <p class="note">Mental model: the machine just <b>sits there</b> exposing <code>buy()</code>. Anyone — you, a bot, a whole chain of other contracts — can call it, and it runs the identical math every time. Stacking these callable machines is <b>composability</b> (Week 3 flash loans exploit it; Weeks 4 &amp; 6 attack &amp; defend it).</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  const ITEMS = [
+    {slot:'A1', emoji:'🥤', price:5, stock:3},
+    {slot:'A2', emoji:'🍫', price:3, stock:3},
+    {slot:'B1', emoji:'🍪', price:4, stock:3},
+    {slot:'B2', emoji:'🧃', price:6, stock:3},
+  ];
+  const START = {eoa:20, bot:20};
+  let items, coins, sel, busy=false, rug=false;
+  const $ = id => document.getElementById(id);
+
+  function reset(){
+    items = ITEMS.map(o=>({...o}));
+    coins = {...START};
+    sel = 0; busy=false; rug=false;
+    $('trusted').checked=false; $('ownerBox').style.display='none';
+    setOwnerHint(false);
+    $('tray').innerHTML='tray: (empty)';
+    $('log').innerHTML='Call log will appear here…';
+    $('status').textContent='';
+    render();
+  }
+
+  function render(){
+    const g=$('grid'); g.innerHTML='';
+    items.forEach((it,i)=>{
+      const d=document.createElement('div');
+      d.className='slot'+(i===sel?' sel':'')+(it.stock<=0?' out':'');
+      d.innerHTML=`<span class="emoji">${it.emoji}</span>
+        <div class="code">${it.slot}</div>
+        <div class="price">${it.price} coins</div>
+        <div class="stock">stock: ${it.stock}</div>`;
+      d.onclick=()=>{ if(busy) return; sel=i; render(); updateSigs(); };
+      g.appendChild(d);
+    });
+    $('eoaCoins').textContent=coins.eoa;
+    $('botCoins').textContent=coins.bot;
+    updateSigs();
+  }
+  function updateSigs(){
+    const it=items[sel];
+    $('eoaSig').textContent=`buy(${it.emoji}, ${coins.eoa})`;
+    $('botSig').textContent=`buy(${it.emoji}, ${coins.bot})`;
+  }
+
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  function log(html){ $('log').innerHTML += html+'\n'; }
+
+  async function call(who){
+    if(busy) return; busy=true;
+    document.querySelectorAll('.callbtn').forEach(b=>b.disabled=true);
+    $('log').innerHTML=''; $('tray').innerHTML='tray: (empty)';
+    const name = who==='eoa' ? 'You' : 'SnackBot';
+    const cls  = who==='eoa' ? 'eoa' : 'bot';
+    const it = items[sel];
+    const paid = coins[who];
+
+    $('c'+(who==='eoa'?'Eoa':'Bot')).classList.add('flash');
+    setTimeout(()=>$('c'+(who==='eoa'?'Eoa':'Bot')).classList.remove('flash'),700);
+    log(`<span class="call">${name}.call → SNAX-9000.buy(${it.slot}=${it.emoji}, coins=${paid})</span>`);
+    $('status').textContent=`${name} inserts ${paid} coins and calls buy(${it.slot})…`;
+    await sleep(650);
+
+    // checks
+    if(it.stock<=0){
+      log(`  <span class="bad">revert: sold out (stock=0)</span> — coins refunded, nothing changes`);
+      $('status').textContent='↩ Reverted: sold out. In one atomic tx, nobody loses coins.';
+      return finish();
+    }
+    if(paid < it.price){
+      log(`  <span class="bad">revert: coins ${paid} &lt; price ${it.price}</span> — refunded, nothing changes`);
+      $('status').textContent='↩ Reverted: not enough coins. State untouched.';
+      return finish();
+    }
+
+    // the rug path (only when pretending it's a human-run server)
+    if(rug){
+      coins[who]-=paid;                       // took the money
+      log(`  operator: <span class="bad">kept ${paid} coins, dispensed NOTHING</span>`);
+      $('status').textContent='⛔ The human operator rugged the caller. A real contract literally cannot do this.';
+      rug=false;
+      render();
+      return finish();
+    }
+
+    // honest deterministic path
+    const change = paid - it.price;
+    // animate the item dropping
+    const slotEl = $('grid').children[sel];
+    slotEl.classList.add('dispense');
+    await sleep(360);
+    it.stock -= 1;
+    coins[who] = change;                        // caller now holds only the change
+    log(`  require(coins≥price, stock&gt;0) <span class="give">✓</span>`);
+    log(`  stock[${it.slot}] → ${it.stock};  <span class="give">give(${it.emoji})</span>;  return change=${change}`);
+    $('tray').innerHTML = `<span class="drop">${it.emoji}</span><span>dispensed to ${name}</span>` +
+                          (change>0?`<span class="change">+${change} change</span>`:``);
+    log(`<span class="call">${name}.receive(${it.emoji})</span> + ${change} coins back <span class="give">✓ done (1 atomic tx)</span>`);
+    $('status').textContent=`✓ Same rule for a human or a bot. ${name} paid ${it.price}, got ${it.emoji} + ${change} back.`;
+    render();
+    finish();
+  }
+  function finish(){
+    busy=false;
+    document.querySelectorAll('.callbtn').forEach(b=>b.disabled=false);
+  }
+
+  function setOwnerHint(on){
+    $('ownerHint').innerHTML = on
+      ? 'On = a human behind the counter: they can take the coins and <b>refuse to hand over the snack</b>. Click the red button, then have anyone call buy().'
+      : 'Off = real contract: the rule above is the whole behavior; a paid caller <b>always</b> gets the item. Turn it on to reveal a “keep the coins, give nothing” button — the thing only a human-in-the-loop can do.';
+  }
+
+  document.querySelectorAll('.callbtn').forEach(b=> b.onclick=()=>call(b.dataset.caller));
+  $('resetBtn').onclick=reset;
+  $('trusted').onchange=e=>{
+    $('ownerBox').style.display=e.target.checked?'block':'none';
+    setOwnerHint(e.target.checked);
+    if(!e.target.checked) rug=false;
+  };
+  $('rugBtn').onclick=()=>{ rug=true; $('status').textContent='😈 Operator armed. Now let a caller call buy() — watch it take the coins and give nothing.'; };
+
+  reset();
+})();
+</script>
+</body>
+</html>

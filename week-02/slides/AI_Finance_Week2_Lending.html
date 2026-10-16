@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Finance · Week 2 · Session 4</title>
+<style>
+  :root{
+    --bg:#0f1420; --bg2:#131a2a; --card:#161d2e; --ink:#eef2f8; --muted:#9aa7bd;
+    --line:#293349; --accent:#5eead4; --accent2:#818cf8; --warn:#fbbf24; --bad:#f87171; --ok:#4ade80;
+    --chip:#1d2740;
+  }
+  :root[data-theme="light"]{
+    --bg:#eef1f6; --bg2:#e7ebf3; --card:#ffffff; --ink:#141a26; --muted:#5b6577; --line:#dde3ec;
+    --accent:#0d9488; --accent2:#6366f1; --warn:#b45309; --bad:#dc2626; --ok:#16a34a; --chip:#eef2f8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:radial-gradient(1200px 700px at 78% -10%,var(--bg2),var(--bg));color:var(--ink);
+    font:16px/1.55 -apple-system,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB",sans-serif;overflow:hidden}
+  .deck{height:100vh;display:flex;align-items:center;justify-content:center;padding:3vh 3vw}
+  .slide{width:min(1180px,94vw);height:min(700px,92vh);background:linear-gradient(180deg,var(--card),color-mix(in srgb,var(--card) 90%,var(--bg)));
+    border:1px solid var(--line);border-radius:22px;box-shadow:0 30px 80px rgba(0,0,0,.35);
+    padding:40px 56px 58px;position:relative;display:none;flex-direction:column;overflow:hidden}
+  .slide.on{display:flex;animation:in .35s ease}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .slide::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;
+    background:linear-gradient(180deg,var(--accent),var(--accent2))}
+
+  .eyebrow{font-size:12.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  h1{font-size:50px;line-height:1.08;font-weight:850;letter-spacing:-.01em}
+  h2{font-size:29px;line-height:1.16;font-weight:820;letter-spacing:-.01em;margin-bottom:4px}
+  .lead{font-size:18px;color:var(--muted);margin-top:12px;max-width:62ch}
+  .rule{height:3px;width:60px;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;margin:14px 0 16px}
+
+  ul{list-style:none;display:flex;flex-direction:column;gap:11px;margin-top:6px}
+  li{position:relative;padding-left:30px;font-size:18.5px;line-height:1.4}
+  li::before{content:"";position:absolute;left:2px;top:.55em;width:10px;height:10px;border-radius:3px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));transform:rotate(45deg)}
+  li b{color:var(--ink);font-weight:800}
+  li .k{color:var(--accent)}
+  li small{display:block;font-size:14px;color:var(--muted);padding-left:0;margin-top:2px;line-height:1.4}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:4px}
+  .box{background:var(--chip);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .box h3{font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:9px}
+  .box.alt h3{color:var(--accent2)}
+  .box ul{gap:8px} .box li{font-size:15.5px;padding-left:22px} .box li::before{width:8px;height:8px;top:.5em}
+
+  table{border-collapse:collapse;width:100%;margin-top:8px;font-size:15.5px}
+  th,td{text-align:left;padding:8px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--accent);font-size:13px;letter-spacing:.06em;text-transform:uppercase;font-weight:800}
+  td b{font-weight:800}
+  tr td:first-child{color:var(--muted);white-space:nowrap;font-weight:700}
+
+  code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+  .code{background:var(--chip);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-top:12px;
+    font:16.5px/1.65 ui-monospace,Menlo,monospace;color:var(--ink)}
+  .code .c{color:var(--muted)} .code .g{color:var(--accent)} .code .b{color:var(--bad)} .code .y{color:var(--warn)}
+  .callout{margin-top:16px;background:color-mix(in srgb,var(--accent) 12%,transparent);
+    border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);border-radius:12px;padding:13px 17px;font-size:15.5px;line-height:1.5}
+  .callout.warn{background:color-mix(in srgb,var(--warn) 14%,transparent);border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
+  .callout.bad{background:color-mix(in srgb,var(--bad) 14%,transparent);border-color:color-mix(in srgb,var(--bad) 45%,transparent)}
+  .callout b{color:var(--ink)}
+
+  .title-slide{justify-content:center}
+  .title-slide h1{font-size:60px}
+  .title-slide .meta{margin-top:28px;display:flex;gap:26px;flex-wrap:wrap;color:var(--muted);font-size:17px}
+  .title-slide .meta span{display:flex;align-items:center;gap:8px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+
+  .divider{justify-content:center}
+  .divider .num{font-size:20px;color:var(--accent);font-weight:800;letter-spacing:.1em}
+  .divider h1{font-size:56px;margin-top:8px}
+
+  .hf{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px}
+  .hf .pill{background:var(--chip);border:1px solid var(--line);border-radius:12px;padding:12px 18px;font-family:ui-monospace,Menlo,monospace}
+  .hf .pill .big{font-size:26px;font-weight:850}
+  .hf .safe .big{color:var(--ok)} .hf .warnp .big{color:var(--warn)} .hf .badp .big{color:var(--bad)}
+  .hf .pill small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+
+  .foot{position:absolute;left:56px;right:56px;bottom:20px;display:flex;justify-content:space-between;
+    align-items:center;font-size:13px;color:var(--muted)}
+  .foot .fname{font-weight:700}
+  .progress{position:fixed;left:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+    transition:width .3s;z-index:5}
+  .nav{position:fixed;right:18px;bottom:16px;display:flex;gap:8px;z-index:6}
+  .nav button,.topbtn{font:inherit;font-weight:700;color:var(--ink);background:var(--card);border:1px solid var(--line);
+    border-radius:10px;padding:8px 12px;cursor:pointer}
+  .nav button:hover,.topbtn:hover{border-color:var(--accent)}
+  .counter{position:fixed;right:18px;top:16px;font-size:13px;color:var(--muted);background:var(--card);
+    border:1px solid var(--line);border-radius:999px;padding:6px 12px;z-index:6}
+  .topbtns{position:fixed;left:18px;top:14px;display:flex;gap:8px;z-index:6}
+  .topbtn{padding:6px 10px;font-size:13px}
+  .hint{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);font-size:12px;color:var(--muted);z-index:4;opacity:.7}
+  @media(max-width:640px){
+    .slide{padding:34px 30px 56px} h1{font-size:34px} .title-slide h1{font-size:38px} h2{font-size:24px}
+    li{font-size:17px} .two{grid-template-columns:1fr} .foot{left:30px;right:30px}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="prog"></div>
+<div class="counter" id="counter">1 / 1</div>
+<div class="topbtns">
+  <button class="topbtn" id="themeBtn">◑ Theme</button>
+  <button class="topbtn" id="fsBtn">⛶ Full</button>
+</div>
+<div class="nav">
+  <button id="prev">◀</button>
+  <button id="next">▶</button>
+</div>
+<div class="hint">← → / Space to move · F fullscreen · O jump</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · Title -->
+  <section class="slide title-slide">
+    <div class="eyebrow">MB / CSE 599 · AI Finance</div>
+    <h1>Lending &amp; Liquidation<br>The on-chain pawnshop</h1>
+    <p class="lead">Week 2 · Session 4 — deposit collateral, borrow against it, and watch a live position get liquidated when a single number crosses 1.</p>
+    <div class="meta">
+      <span><i class="dot"></i> 2 hours</span>
+      <span><i class="dot"></i> Testnet only · never real money</span>
+      <span><i class="dot"></i> Instructor Mingjing Zhang</span>
+    </div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span>Session 4 · Lending &amp; Liquidation</span></div>
+  </section>
+
+  <!-- 2 · Bridge from Session 3 -->
+  <section class="slide">
+    <div class="eyebrow">Where we are · from Session 3</div>
+    <h2>You built a market. Now you don't <em>sell</em> — you <em>borrow</em>.</h2>
+    <div class="rule"></div>
+    <ul>
+      <li>Session 3: you wrote your own Uniswap — <span class="k">x·y=k</span>, anyone can swap, price is the invariant.</li>
+      <li>But swapping <b>sells</b> your ETH. What if you're bullish and want cash <b>without selling</b>?</li>
+      <li>Answer: <b>post your ETH as collateral and borrow against it</b> — the second composable lego of DeFi.</li>
+    </ul>
+    <div class="callout">Same playbook as Session 3: <b>read code → deploy on a local chain → trigger it live → walk it in MetaMask.</b> Flagship contract <span class="mono">lend-foundry/</span>; intuition version <span class="mono">lend.py</span>.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 3 · Part 1 pawnshop -->
+  <section class="slide">
+    <div class="eyebrow">Part 1</div>
+    <h2>A lending protocol = an on-chain pawnshop</h2>
+    <div class="rule"></div>
+    <ul>
+      <li>You <b>deposit collateral</b> and <b>borrow</b> against it. No name, no credit check, no court.</li>
+      <li>So loans must be <b>over-collateralized</b>: <b>always post more value than you borrow</b>.</li>
+      <li>Four actions, that's the whole surface: <b>deposit → borrow → repay → withdraw</b>.</li>
+    </ul>
+    <div class="callout warn"><b>Why over-collateralized?</b> With no identity and no legal recourse, the <b>only</b> thing the protocol can trust is the collateral it already holds. If you vanish, it sells your collateral. Code, not a credit bureau.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 4 · Part 2 health factor (the core one-liner) -->
+  <section class="slide">
+    <div class="eyebrow">Part 2 · this session's x·y=k</div>
+    <h2>The Health Factor decides everything</h2>
+    <div class="code">HF = ( collateral value <span class="g">×</span> liquidation threshold ) <span class="g">/</span> debt value</div>
+    <div class="hf">
+      <div class="pill safe"><span class="big">HF &gt; 1</span><small>safe — nobody can touch you</small></div>
+      <div class="pill badp"><span class="big">HF &lt; 1</span><small><b>anyone</b> can liquidate you</small></div>
+    </div>
+    <div class="callout"><b>Liquidate = repay your debt for you, and seize your collateral at a discount.</b> This one line is the core of Session 4, exactly like <span class="mono">x·y=k</span> was for the AMM. Derive it on the board first.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 5 · HF worked numbers -->
+  <section class="slide">
+    <div class="eyebrow">Part 2 · make it concrete</div>
+    <h2>One position, three prices</h2>
+    <div class="rule"></div>
+    <p style="font-size:16px;color:var(--muted);margin-bottom:6px">Deposit <b style="color:var(--ink)">1 WETH</b> · borrow <b style="color:var(--ink)">1000 USDC</b> · threshold <b style="color:var(--ink)">0.8</b>. HF = price × 0.8 / 1000.</p>
+    <table>
+      <tr><th>ETH price</th><th>Health factor</th><th>Status</th></tr>
+      <tr><td>$2000</td><td><b style="color:var(--ok)">1.60</b> &nbsp;(2000×0.8/1000)</td><td>Safe — plenty of buffer</td></tr>
+      <tr><td>$1250 = <b>P*</b></td><td><b style="color:var(--warn)">1.00</b></td><td>The knife's edge — liquidation price</td></tr>
+      <tr><td>$1200</td><td><b style="color:var(--bad)">0.96</b> &nbsp;(1200×0.8/1000)</td><td>Liquidatable — bots move in</td></tr>
+    </table>
+    <div class="callout"><b>The liquidation price is computable in advance:</b> <span class="mono">P* = debt / (collateral × threshold) = 1000 / (1 × 0.8) = $1250</span>. You know your danger line <b>before</b> the market moves.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 6 · Part 3 read the code -->
+  <section class="slide">
+    <div class="eyebrow">Part 3 · live-run code/lend.py (~60 lines)</div>
+    <h2>Read the code — three functions</h2>
+    <div class="rule"></div>
+    <ul>
+      <li><b>deposit / borrow</b> — the <span class="mono">assert HF &gt;= 1</span> inside <span class="mono">borrow</span> is "you must stay healthy <b>after</b> borrowing."</li>
+      <li><b>health_factor()</b> — the formula in code; no debt → <b>∞</b> (always safe).</li>
+      <li><b>liquidate()</b> — when HF&lt;1: repay the debt, seize collateral at <b>110%</b> (the extra 10% is the liquidator's bonus).</li>
+    </ul>
+    <div class="callout"><b>The whole arc in one run:</b> open at HF=1.6 → oracle drops ETH to $1200 → HF=0.96 → liquidated, liquidator takes <b>0.9167 ETH</b> (1100 USDC of collateral ÷ $1200).</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 7 · Sweep experiment -->
+  <section class="slide">
+    <div class="eyebrow">Part 3 · sweep experiment · code/lend_demo.py</div>
+    <h2>Fix the position, sweep the price — three things pop out</h2>
+    <div class="two">
+      <div class="box"><h3>What you see</h3>
+        <ul>
+          <li>① HF falls <b>linearly</b> with price — halve the price, halve HF.</li>
+          <li>② Liquidation price is <b>knowable ahead</b>: <span class="mono">P* = $1250</span>.</li>
+          <li>③ Liquidation isn't just repayment — a <b>10% penalty</b>.</li>
+        </ul>
+      </div>
+      <div class="box alt"><h3>At $1200</h3>
+        <ul>
+          <li><b>0.9167 ETH</b> seized.</li>
+          <li>~<b>$100 more</b> than if you'd repaid yourself.</li>
+          <li>That gap is what pays the liquidator bot.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout warn"><b>Punchline:</b> don't borrow right at HF=1 — <b>keep a safety buffer</b>. The penalty is the market's fee for cutting it too close.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 8 · Part 4 divider -->
+  <section class="slide divider">
+    <div class="num">PART 4 · R4</div>
+    <h1>Build it live on <span class="mono">anvil</span><br>Trigger a real liquidation</h1>
+    <p class="lead">Same three steps as Session 3 — but the climax is dropping the price live and watching HF cross 1.</p>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span>Part 4</span></div>
+  </section>
+
+  <!-- 9 · live demo commands -->
+  <section class="slide">
+    <div class="eyebrow">Part 4 · in code/lend-foundry</div>
+    <h2>Open a position → drop the price → watch HF cross 1</h2>
+    <div class="code">
+<span class="c"># deposit 1 WETH, borrow 1000 USDC</span>
+cast send $L <span class="g">"deposit(uint256)"</span>  1e18 ...
+cast send $L <span class="g">"borrow(uint256)"</span>   1000e18 ...
+cast call $L <span class="g">"healthFactor(address)"</span> $ME   <span class="c">→ 1.6e18 = 1.6 ✓ safe</span>
+
+<span class="c"># oracle: drop ETH 2000 → 1200  (this one line IS "the market crashed")</span>
+cast send $L <span class="y">"setPrice(uint256)"</span> 1200e18 ...
+cast call $L <span class="g">"healthFactor(address)"</span> $ME   <span class="b">→ 0.96e18 = 0.96 &lt; 1 · liquidatable!</span>
+    </div>
+    <div class="callout"><span class="mono">cast call</span> reads HF (free, view) · <span class="mono">cast send</span> changes state (a tx). <b>view vs state, again.</b> When done: <span class="mono">pkill anvil</span>.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 10 · the magic moment -->
+  <section class="slide">
+    <div class="eyebrow">Part 4 · the magic moment (echoing the AMM's)</div>
+    <h2>"Getting liquidated" isn't a bank calling</h2>
+    <div class="rule"></div>
+    <div class="hf">
+      <div class="pill safe"><span class="big">1.60</span><small>at $2000</small></div>
+      <div class="pill" style="align-self:center;border:none;background:transparent;font-size:24px">→ one <span class="mono" style="color:var(--warn)">setPrice</span> →</div>
+      <div class="pill badp"><span class="big">0.96</span><small>at $1200</small></div>
+    </div>
+    <ul style="margin-top:14px">
+      <li>That single line knocks HF from <b>1.6 to 0.96</b> — matching <span class="mono">lend.py</span> exactly.</li>
+      <li>It's just <b>a number crossing 1</b>, after which <b>any bot</b> can come seize your collateral.</li>
+    </ul>
+    <div class="callout bad"><b>No human decides to liquidate you.</b> The rule is public and automatic; the bots are always watching. That is what "law becomes code" feels like from the borrower's seat.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 11 · Part 5 MetaMask UI -->
+  <section class="slide">
+    <div class="eyebrow">Part 5 · R2 · click it once in a wallet</div>
+    <h2>Deposit &amp; borrow in MetaMask, live (Aave testnet)</h2>
+    <div class="rule"></div>
+    <ul>
+      <li><b>Supply</b> ETH/WETH as collateral (first time = <b>Approve then Supply</b>, two txs).</li>
+      <li>Watch the top metrics: <b>Health Factor</b> + <b>Borrowing power</b>. Eyes glued to these.</li>
+      <li><b>Borrow</b> some USDC → the <b>Health Factor ticks down in real time</b>. More borrow, steeper drop.</li>
+      <li><b>Danger zone:</b> push HF to ~1.x, the page <b>turns red</b> — <b>stop there</b>. Then repay → HF recovers → withdraw.</li>
+    </ul>
+    <div class="callout"><b>Cross-check live:</b> the HF on the UI is the <b>same number</b> from <span class="mono">cast call healthFactor</span> and <span class="mono">lend.py</span>. Contract · CLI · GUI — three doors, one <span class="mono">HF = collateral × threshold / debt</span>.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 12 · interactive companion -->
+  <section class="slide">
+    <div class="eyebrow">Play it yourself</div>
+    <h2>Interactive: drag the price, watch HF cross 1</h2>
+    <div class="rule"></div>
+    <ul>
+      <li>Companion page: <b>a live Health-Factor slider</b> — move ETH's price and see HF and the danger zone update.</li>
+      <li>A <b>liquidation payoff calculator</b>: how much collateral a liquidator seizes, and the 10% bonus.</li>
+      <li>The <b>sweep</b> made visual: HF's straight line, <span class="mono">P*=$1250</span>, the penalty gap.</li>
+    </ul>
+    <div class="callout">▶ <b>Open now:</b> <span class="mono">Week2-viz-lending-liquidation.html</span> — same numbers as <span class="mono">lend.py</span>, nothing to install. Let students drive it after the live demo.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 13 · Part 6 setup for later -->
+  <section class="slide">
+    <div class="eyebrow">Part 6 · this connects forward</div>
+    <h2>Two legos that unlock the rest of the course</h2>
+    <div class="rule"></div>
+    <ul>
+      <li><b>Lending + AMMs</b> are the composable pieces that make <b>flash loans</b> possible — <b>Week 3</b>: "zero-collateral borrowing inside a single transaction."</li>
+      <li>The <b>Approve</b> you clicked in MetaMask is the <b>first authorization</b> you grant — remember it for <b>Week 6 (security)</b>: what an agent holding that authorization can and shouldn't do.</li>
+    </ul>
+    <div class="callout warn"><b>Course through-line:</b> every power you grant (a key, an approval, an allowance) is also an attack surface. We keep pulling this thread.</div>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 14 · Key takeaways -->
+  <section class="slide">
+    <div class="eyebrow">Key takeaways</div>
+    <h2>Walk away with these</h2>
+    <div class="rule"></div>
+    <ul>
+      <li><span class="mono">x·y=k</span> is the whole AMM; <b>swap output = y − k/(x+dx)</b>; slippage grows with trade size.</li>
+      <li>Lending is <b>over-collateralized</b> — no identity, so only collateral is trusted.</li>
+      <li>The <b>Health Factor</b> decides safety; <b>crossing 1 means anyone can liquidate you</b>.</li>
+      <li>Liquidation is <b>automatic and permissionless</b>, with a <b>10% penalty</b> — keep a buffer.</li>
+      <li>AMMs + lending are the composable pieces the rest of DeFi is built from.</li>
+    </ul>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span></span></div>
+  </section>
+
+  <!-- 15 · Vocabulary -->
+  <section class="slide">
+    <div class="eyebrow">Vocabulary</div>
+    <h2>The words you now own</h2>
+    <table>
+      <tr><th>Term</th><th>One-line meaning</th></tr>
+      <tr><td>Collateral</td><td>Value you post to back a loan</td></tr>
+      <tr><td>Over-collateralized</td><td>Post <b>more</b> value than you borrow</td></tr>
+      <tr><td>Health factor</td><td>Ratio deciding if you can be liquidated (<span class="mono">collat × threshold / debt</span>)</td></tr>
+      <tr><td>Liquidation threshold</td><td>Fraction of collateral that counts toward safety (here 0.8)</td></tr>
+      <tr><td>Liquidation</td><td>Forced repayment + collateral seizure once HF &lt; 1</td></tr>
+      <tr><td>Liquidator bonus</td><td>The discount (≈10%) that pays the bot to do it</td></tr>
+      <tr><td>Oracle</td><td>The price feed the protocol reads (our <span class="mono">setPrice</span> = a toy oracle)</td></tr>
+    </table>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span>Session 4 · end</span></div>
+  </section>
+
+  <!-- 16 · Next -->
+  <section class="slide divider">
+    <div class="num">NEXT · WEEK 3</div>
+    <h1>Flash loans<br>Borrow millions with zero collateral</h1>
+    <p class="lead">…as long as you pay it all back inside the same transaction. Lending + AMM, composed.</p>
+    <div class="foot"><span class="fname">AI Finance · Week 2</span><span>See you next week</span></div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const N = slides.length;
+  let i = 0;
+  const prog = document.getElementById('prog');
+  const counter = document.getElementById('counter');
+  function show(n){
+    i = Math.max(0, Math.min(N-1, n));
+    slides.forEach((s,k)=>s.classList.toggle('on', k===i));
+    prog.style.width = ((i+1)/N*100)+'%';
+    counter.textContent = (i+1)+' / '+N;
+    try{ location.hash = '#'+(i+1); }catch(e){}
+  }
+  function nextS(){ show(i+1); }
+  function prevS(){ show(i-1); }
+  document.getElementById('next').onclick = nextS;
+  document.getElementById('prev').onclick = prevS;
+  document.addEventListener('keydown', e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){ e.preventDefault(); nextS(); }
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); prevS(); }
+    else if(e.key==='Home'){ show(0); }
+    else if(e.key==='End'){ show(N-1); }
+    else if(e.key==='f'||e.key==='F'){ toggleFs(); }
+    else if(e.key==='o'||e.key==='O'){ jump(); }
+  });
+  document.getElementById('deck').addEventListener('click', e=>{
+    if(e.target.closest('button,a,input')) return;
+    const x = e.clientX / window.innerWidth;
+    if(x>0.62) nextS(); else if(x<0.38) prevS();
+  });
+  function jump(){
+    const n = prompt('Go to slide? (1–'+N+')', (i+1));
+    if(n){ const k=parseInt(n,10); if(!isNaN(k)) show(k-1); }
+  }
+  function toggleFs(){
+    if(!document.fullscreenElement){ document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen(); }
+    else { document.exitFullscreen&&document.exitFullscreen(); }
+  }
+  document.getElementById('fsBtn').onclick = toggleFs;
+  document.getElementById('themeBtn').onclick = ()=>{
+    const r = document.documentElement;
+    r.setAttribute('data-theme', r.getAttribute('data-theme')==='light' ? 'dark' : 'light');
+  };
+  const start = parseInt((location.hash||'#1').slice(1),10);
+  show(isNaN(start)?0:start-1);
+})();
+</script>
+</body>
+</html>

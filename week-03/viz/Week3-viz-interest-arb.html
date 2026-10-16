@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interest-rate arbitrage · iEarn by hand</title>
+<style>
+  :root{--bg:#0d0b14;--card:#161320;--card2:#1e1a2b;--border:#2c2740;--text:#f4f1fb;--muted:#9a92b3;
+    --green:#4ade80;--red:#ff7b72;--gold:#fbbf24;--purple:#8b5cf6;--blue:#60a5fa;--pink:#ff2e88;--mono:ui-monospace,Menlo,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:radial-gradient(1200px 700px at 80% -10%,#1a1330,var(--bg));
+    color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:16px}
+  .wrap{max-width:920px;margin:0 auto}
+  h1{font-size:21px;margin:0 0 3px}h1 span{background:linear-gradient(90deg,var(--gold),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:13.5px;margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:14px;margin-bottom:12px}
+  .top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+  .stat{background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:8px 12px;min-width:120px}
+  .stat .t{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  .stat .v{font-family:var(--mono);font-weight:800;font-size:17px;margin-top:2px}
+  .venues{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  @media(max-width:760px){.venues{grid-template-columns:1fr}}
+  .venue{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px;position:relative;transition:border-color .2s}
+  .venue.best{border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset}
+  .venue h3{margin:0 0 8px;font-size:14px;display:flex;align-items:center;gap:6px}
+  .badge{font-size:9.5px;background:var(--green);color:#04210f;font-weight:800;border-radius:6px;padding:2px 6px;letter-spacing:.3px}
+  .apr{font-family:var(--mono);font-weight:800;font-size:26px;line-height:1}
+  .apr small{font-size:11px;font-weight:600;color:var(--muted)}
+  .brow{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin:3px 0 8px}
+  .ubar{height:8px;border-radius:5px;background:var(--card2);overflow:hidden;margin:4px 0}
+  .ufill{height:100%;background:linear-gradient(90deg,var(--blue),var(--red))}
+  .row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;margin:5px 0}
+  .row b{color:var(--text)}
+  .slbl{font-size:10.5px;color:var(--muted);margin-top:8px;display:flex;justify-content:space-between}
+  input[type=range]{width:100%;accent-color:var(--purple);height:20px}
+  .btns{display:flex;gap:6px;margin-top:9px}
+  button{font-family:inherit;font-weight:700;border:none;border-radius:9px;padding:8px 10px;cursor:pointer;font-size:12.5px;flex:1}
+  .bsup{background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff}
+  .bwd{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .run{background:linear-gradient(90deg,var(--green),#22c55e);color:#04210f;flex:0 0 auto;padding:9px 18px}
+  .run.paused{background:var(--gold);color:#3a2c00}
+  .allbest{background:linear-gradient(90deg,var(--gold),var(--green));color:#04210f;flex:0 0 auto;padding:9px 16px}
+  .teach{background:color-mix(in srgb,var(--gold) 9%,transparent);border:1px solid color-mix(in srgb,var(--gold) 32%,var(--border));border-radius:11px;padding:11px 14px;font-size:12.5px;color:var(--muted);line-height:1.55}
+  .teach b{color:var(--gold)}
+  svg{width:100%;height:auto;display:block}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;margin:4px 0 2px}
+  .legend .k{display:flex;align-items:center;gap:5px;font-family:var(--mono)}
+  .dot{width:12px;height:3px;border-radius:2px;display:inline-block}
+  .amtwrap{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px}
+  .amt{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:7px 10px;color:var(--text);font-family:var(--mono);width:110px}
+  .foot{text-align:center;font-size:11px;color:var(--muted);margin-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Interest-rate <span>arbitrage</span> — iEarn by hand</h1>
+  <div class="sub">Same coin (tUSDC), three lending venues, different supply APR. Move to the best — then <b style="color:var(--gold)">watch the crowd arb all three rates back together</b> (equilibrium). <b style="color:var(--gold)">Profit = spread × size × time.</b></div>
+
+  <div class="card">
+    <div class="top">
+      <div class="stat"><div class="t">Idle wallet</div><div class="v" id="wallet" style="color:var(--gold)">—</div></div>
+      <div class="stat"><div class="t">Net worth</div><div class="v" id="net" style="color:var(--green)">—</div></div>
+      <div class="stat"><div class="t">Chase P&amp;L</div><div class="v" id="pnl" style="color:var(--green)">—</div></div>
+      <div class="stat"><div class="t">Your blended APR</div><div class="v" id="blend" style="color:var(--blue)">—</div></div>
+      <div class="stat"><div class="t">Time elapsed</div><div class="v" id="days">0 d</div></div>
+    </div>
+    <div class="controls" style="margin-top:12px">
+      <button class="run paused" id="runBtn" onclick="toggle()">▶ Run time</button>
+      <div class="amtwrap">speed <input type="range" id="speed" min="1" max="60" step="1" value="20" style="width:120px" oninput="spL()"><b id="spLbl">20</b> d/s</div>
+      <button class="allbest" onclick="moveAllBest()">⚡ Move ALL to best venue</button>
+      <div class="amtwrap">amount <input class="amt" id="amt" value="20000"> tUSDC</div>
+    </div>
+  </div>
+
+  <div class="venues" id="venues"></div>
+
+  <div class="card">
+    <div style="font-size:12.5px;color:var(--muted);margin-bottom:4px">Three supply APRs over time — <b style="color:var(--gold)">the crowd arbitrages the gaps away</b> (normalization)</div>
+    <div class="legend">
+      <span class="k"><span class="dot" style="background:#8b5cf6"></span>Aave-lite</span>
+      <span class="k"><span class="dot" style="background:#60a5fa"></span>Compound-lite</span>
+      <span class="k"><span class="dot" style="background:#fbbf24"></span>dYdX-lite</span>
+      <span class="k" style="margin-left:auto">spread (max−min) <b id="spread" style="color:var(--red)">—</b></span>
+    </div>
+    <svg viewBox="0 0 880 200" role="img" aria-label="three supply APRs over time">
+      <line x1="50" y1="12" x2="50" y2="172" stroke="#2c2740"/>
+      <line x1="50" y1="172" x2="868" y2="172" stroke="#2c2740"/>
+      <path id="l0" fill="none" stroke="#8b5cf6" stroke-width="2.5"/>
+      <path id="l1" fill="none" stroke="#60a5fa" stroke-width="2.5"/>
+      <path id="l2" fill="none" stroke="#fbbf24" stroke-width="2.5"/>
+    </svg>
+    <div class="teach" id="verdict" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card">
+    <div class="teach" style="background:none;border:none;padding:0;color:var(--text)">
+      <b style="color:var(--gold)">The one idea (iEarn, 2020):</b> on-chain yields are <b>public readable state</b>, and moving your deposit is a <b>permissionless function</b>. So "put my stablecoin wherever it earns most" can be written as an unattended contract — no bank, no counterparty approval.<br><br>
+      <b style="color:var(--gold)">Why the gap closes (convergence):</b> when you supply into the high-APR venue, its <b>utilization drops</b> (more cash, same borrowers) → its supply APR falls. Pile in enough and the three venues equalize. That is a market becoming efficient — just <b>slowly, over time</b>, unlike a swap arb that snaps shut in one trade.<br><br>
+      <b style="color:var(--gold)">Re-open a gap:</b> drag a venue's <b>borrow-demand</b> slider up (a big borrower arrives) → its utilization and APR jump → chase again. This is what a rebalancing vault would do for you automatically — the next step.
+    </div>
+  </div>
+  <div class="foot">MB/CSE 599 · AI Finance · interest-rate arbitrage (supply-side rate chasing) · same kink model as our LendingPool</div>
+</div>
+
+<script>
+const KINK=0.80, BASE=0.02, S1=0.08, S2=0.60, RESERVE=0.10;
+const borrowAPR=U=> U<=KINK ? BASE+(U/KINK)*S1 : BASE+S1+((U-KINK)/(1-KINK))*S2;
+const supplyAPR=U=> borrowAPR(U)*U*(1-RESERVE);
+const $=id=>document.getElementById(id);
+const fmt=v=>v.toLocaleString(undefined,{maximumFractionDigits:0});
+const pct=v=>(v*100).toFixed(2)+'%';
+
+const START=60000;
+let wallet=START, days=0, running=false, speed=20;
+let sit=START;                 // shadow: parked in venue0 forever
+const hist=[];                 // {chase, sit}
+const V=[
+  {name:'Aave-lite',     col:'#8b5cf6', extSupply:1200000, extBorrow:360000,  you:0}, // U .30 -> 1.35%
+  {name:'Compound-lite', col:'#60a5fa', extSupply:1000000, extBorrow:800000,  you:0}, // U .80 -> 7.2%
+  {name:'dYdX-lite',     col:'#fbbf24', extSupply:1200000, extBorrow:1020000, you:0}, // U .85 -> 19.1%
+];
+const U=v=> Math.min(0.995, v.extBorrow/(v.extSupply+v.you));
+const netWorth=()=> wallet + V.reduce((a,v)=>a+v.you,0);
+const bestIdx=()=>{let b=0;for(let i=1;i<V.length;i++) if(supplyAPR(U(V[i]))>supplyAPR(U(V[b]))) b=i; return b;}
+
+function buildCards(){
+  $("venues").innerHTML=V.map((v,i)=>`
+    <div class="venue" id="v${i}">
+      <h3><span style="color:${v.col}">●</span> ${v.name} <span class="badge" id="bd${i}" style="display:none">BEST</span></h3>
+      <div class="apr" id="sa${i}" style="color:${v.col}">—<small> supply APR</small></div>
+      <div class="brow">borrow APR <span id="ba${i}">—</span> · util <span id="ut${i}">—</span></div>
+      <div class="ubar"><div class="ufill" id="uf${i}"></div></div>
+      <div class="row"><span>your supplied</span><b id="you${i}">0</b></div>
+      <div class="slbl"><span>borrow demand (the market)</span><span id="dl${i}"></span></div>
+      <input type="range" id="dm${i}" min="0" max="0.98" step="0.01" value="${(v.extBorrow/v.extSupply).toFixed(2)}" oninput="setDemand(${i})">
+      <div class="btns">
+        <button class="bsup" onclick="supply(${i})">Supply</button>
+        <button class="bwd" onclick="withdraw(${i})">Withdraw all</button>
+      </div>
+    </div>`).join('');
+}
+function setDemand(i){ V[i].extBorrow = (+$("dm"+i).value)*V[i].extSupply; render(); }
+function amt(){ let a=Math.max(0,+$("amt").value||0); return a; }
+
+function supply(i){ let a=Math.min(amt(),wallet); if(a<=0)return; wallet-=a; V[i].you+=a; render(); }
+function withdraw(i){ wallet+=V[i].you; V[i].you=0; render(); }
+function moveAllBest(){ let tot=netWorth(); V.forEach(v=>v.you=0); wallet=0; V[bestIdx()].you=tot; render(); }
+
+function tick(){
+  if(!running) return;
+  const dt=(speed*0.1)/365;            // years advanced per 100ms
+  days += speed*0.1;
+  V.forEach(v=>{ v.you *= (1+supplyAPR(U(v))*dt); });   // your supply compounds in place
+  sit *= (1+supplyAPR(U(V[0]))*dt);                     // shadow parked in Aave-lite
+  // THE CROWD: outside capital chases yield → supply flows worst→best → the three APRs converge
+  const a=V.map(v=>supplyAPR(U(v)));
+  let bi=0,wi=0; a.forEach((x,i)=>{ if(x>a[bi])bi=i; if(x<a[wi])wi=i; });
+  let flow=(a[bi]-a[wi])*V[bi].extSupply*8*dt;          // proportional to the gap
+  flow=Math.min(flow, V[wi].extSupply*0.04);
+  V[wi].extSupply-=flow; V[bi].extSupply+=flow;
+  hist.push({apr:V.map(v=>supplyAPR(U(v))), chase:netWorth(), sit});
+  if(hist.length>420) hist.shift();
+  render();
+}
+setInterval(tick,100);
+
+function toggle(){ running=!running; const b=$("runBtn"); b.textContent=running?'⏸ Pause':'▶ Run time'; b.classList.toggle('paused',!running); }
+function spL(){ speed=+$("speed").value; $("spLbl").textContent=speed; }
+
+function drawChart(){
+  if(hist.length<2){ ['l0','l1','l2'].forEach(id=>$(id).setAttribute('d','')); return; }
+  const xs=(i)=>50+(i/(hist.length-1))*818;
+  let hi=0.02; hist.forEach(h=>h.apr.forEach(v=>{ if(v>hi)hi=v; }));
+  const ys=(v)=>172-(v/hi)*158;
+  for(let k=0;k<3;k++){
+    const d=hist.map((h,i)=>(i?'L':'M')+xs(i).toFixed(1)+','+ys(h.apr[k]).toFixed(1)).join(' ');
+    $('l'+k).setAttribute('d',d);
+  }
+}
+
+function render(){
+  const bi=bestIdx();
+  const a0=V.map(v=>supplyAPR(U(v)));
+  const conv=(Math.max(...a0)-Math.min(...a0))<0.001;   // <0.1% spread = tied = equilibrium
+  V.forEach((v,i)=>{
+    const u=U(v), sa=supplyAPR(u), ba=borrowAPR(u);
+    $("sa"+i).innerHTML=pct(sa)+'<small> supply APR</small>';
+    $("ba"+i).textContent=pct(ba); $("ut"+i).textContent=(u*100).toFixed(0)+'%';
+    $("uf"+i).style.width=(u*100).toFixed(0)+'%';
+    $("you"+i).textContent=fmt(v.you)+' tUSDC';
+    $("dl"+i).textContent=fmt(v.extBorrow);
+    $("v"+i).classList.toggle('best', !conv && i===bi);
+    $("bd"+i).textContent = conv ? '⚖ TIED' : 'BEST';
+    $("bd"+i).style.background = conv ? 'var(--muted)' : 'var(--green)';
+    $("bd"+i).style.color = conv ? 'var(--text)' : '#04210f';
+    $("bd"+i).style.display = conv ? 'inline-block' : (i===bi?'inline-block':'none');
+  });
+  $("wallet").textContent=fmt(wallet);
+  $("net").textContent=fmt(netWorth());
+  const pnl=netWorth()-START; $("pnl").textContent=(pnl>=0?'+':'')+fmt(pnl); $("pnl").style.color=pnl>=0?'var(--green)':'var(--red)';
+  // blended APR = weighted avg of where your money sits
+  const inv=V.reduce((a,v)=>a+v.you,0);
+  const bl = inv>0 ? V.reduce((a,v)=>a+v.you*supplyAPR(U(v)),0)/inv : 0;
+  $("blend").textContent=pct(bl);
+  $("days").textContent=days.toFixed(0)+' d';
+  const aprs=V.map(v=>supplyAPR(U(v)));
+  const spread=Math.max(...aprs)-Math.min(...aprs);
+  $("spread").textContent=pct(spread); $("spread").style.color = spread<0.01?'var(--green)':'var(--red)';
+  const edge=netWorth()-sit, sg=edge>=0?'+':'−';
+  $("verdict").innerHTML=`Day <b>${days.toFixed(0)}</b>: best is <b style="color:var(--green)">${V[bi].name} @ ${pct(supplyAPR(U(V[bi])))}</b>. `+
+    (inv===0? `Your <b>${fmt(wallet)}</b> sits idle at <b>0%</b> — deploy it. `:
+     `Blended <b style="color:var(--blue)">${pct(bl)}</b>. `)+
+    `The crowd is arbing the three rates together — spread now <b style="color:${spread<0.01?'var(--green)':'var(--gold)'}">${pct(spread)}</b>. Chase vs sit: <b style="color:${edge>=0?'var(--green)':'var(--red)'}">${sg}${fmt(Math.abs(edge))}</b>.`;
+  drawChart();
+}
+buildCards(); render();
+</script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flash loan · borrow → arb → repay, atomically</title>
+<style>
+  :root{--bg:#0d0b14;--card:#161320;--card2:#1e1a2b;--border:#2c2740;--text:#f4f1fb;--muted:#9a92b3;
+    --green:#4ade80;--red:#ff7b72;--gold:#fbbf24;--purple:#8b5cf6;--blue:#60a5fa;--pink:#ff2e88;--mono:ui-monospace,Menlo,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:radial-gradient(1200px 700px at 80% -10%,#1a1330,var(--bg));
+    color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:16px}
+  .wrap{max-width:940px;margin:0 auto}
+  h1{font-size:21px;margin:0 0 3px}h1 span{background:linear-gradient(90deg,var(--blue),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:13.5px;margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:14px;margin-bottom:12px}
+  .controls{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  input[type=range]{width:100%;accent-color:var(--purple);height:22px}
+  .rowlbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12.5px;color:var(--muted)}.rowlbl b{color:var(--text)}
+  button{font-family:inherit;font-weight:800;border:none;border-radius:10px;padding:11px 20px;cursor:pointer;font-size:14px}
+  .exec{background:linear-gradient(90deg,var(--blue),var(--green));color:#04210f}
+  .exec:disabled{opacity:.5;cursor:not-allowed}
+  .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;align-items:stretch;margin:6px 0}
+  @media(max-width:720px){.flow{grid-template-columns:1fr 1fr}}
+  .node{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center;position:relative;transition:all .25s;opacity:.5}
+  .node.on{opacity:1;border-color:var(--blue);box-shadow:0 0 0 1px var(--blue) inset;transform:translateY(-2px)}
+  .node.ok{border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset;opacity:1}
+  .node.bad{border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset;opacity:1}
+  .node .ic{font-size:20px}
+  .node .ti{font-size:11.5px;font-weight:700;margin-top:3px}
+  .node .vv{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:3px}
+  .node .step{position:absolute;top:5px;left:7px;font-family:var(--mono);font-size:10px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+  @media(max-width:720px){.grid{grid-template-columns:1fr 1fr}}
+  .box{background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:9px;text-align:center}
+  .box .t{font-size:10.5px;color:var(--muted)}.box .v{font-family:var(--mono);font-weight:800;font-size:15px;margin-top:3px}
+  .outcome{border-radius:12px;padding:13px 16px;margin-top:10px;font-weight:800;text-align:center;font-size:15px}
+  .outcome.win{background:color-mix(in srgb,var(--green) 15%,transparent);border:1px solid var(--green);color:var(--green)}
+  .outcome.lose{background:color-mix(in srgb,var(--red) 15%,transparent);border:1px solid var(--red);color:var(--red)}
+  .outcome small{display:block;font-weight:500;color:var(--muted);font-size:12px;margin-top:4px}
+  svg{width:100%;height:auto;display:block;margin-top:4px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;margin:4px 0}
+  .legend .k{display:flex;align-items:center;gap:5px;font-family:var(--mono)}
+  .dot{width:12px;height:3px;border-radius:2px;display:inline-block}
+  .teach{background:color-mix(in srgb,var(--gold) 9%,transparent);border:1px solid color-mix(in srgb,var(--gold) 32%,var(--border));border-radius:11px;padding:11px 14px;font-size:12.5px;color:var(--muted);line-height:1.55}
+  .teach b{color:var(--gold)}
+  .foot{text-align:center;font-size:11px;color:var(--muted);margin-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Flash loan — <span>borrow → arb → repay</span>, in one atomic transaction</h1>
+  <div class="sub">Start with <b style="color:var(--gold)">$0</b>. Borrow a pile, arbitrage the price gap between two DEXes, repay in the <b>same tx</b>. Repay covered → keep the profit. Not covered → the whole tx <b style="color:var(--red)">reverts</b>, you lose nothing but gas.</div>
+
+  <div class="card">
+    <div class="rowlbl"><span>Flash-borrow amount</span><span><b id="dLbl">4,000</b> tUSDC · fee 0.09% = <b id="feeLbl">3.6</b></span></div>
+    <input id="d" type="range" min="0" max="25000" step="100" value="4000" oninput="render()">
+    <div class="controls" style="margin-top:10px;justify-content:center">
+      <button class="exec" id="execBtn" onclick="execute()">⚡ Execute flash loan (1 transaction)</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="flow">
+      <div class="node" id="n0"><div class="step">1</div><div class="ic">⚡</div><div class="ti">Flash pool</div><div class="vv" id="v0">borrow —</div></div>
+      <div class="node" id="n1"><div class="step">2</div><div class="ic">🟢</div><div class="ti">DEX-cheap · buy MAX</div><div class="vv" id="v1">@ 1900</div></div>
+      <div class="node" id="n2"><div class="step">3</div><div class="ic">🔴</div><div class="ti">DEX-dear · sell MAX</div><div class="vv" id="v2">@ 2100</div></div>
+      <div class="node" id="n3"><div class="step">4</div><div class="ic">↩️</div><div class="ti">Repay pool</div><div class="vv" id="v3">D + fee</div></div>
+      <div class="node" id="n4"><div class="step">5</div><div class="ic">💰</div><div class="ti">Profit (yours)</div><div class="vv" id="v4">—</div></div>
+    </div>
+    <div class="grid">
+      <div class="box"><div class="t">Borrowed</div><div class="v" id="gB" style="color:var(--blue)">—</div></div>
+      <div class="box"><div class="t">MAX bought (cheap)</div><div class="v" id="gM" style="color:var(--green)">—</div></div>
+      <div class="box"><div class="t">tUSDC from selling (dear)</div><div class="v" id="gU" style="color:var(--gold)">—</div></div>
+      <div class="box"><div class="t">Must repay</div><div class="v" id="gR" style="color:var(--red)">—</div></div>
+    </div>
+    <div class="outcome" id="outcome">—</div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:12.5px;color:var(--muted);margin-bottom:2px">Profit vs borrow size — borrow too much and <b style="color:var(--red)">your own trades eat the gap</b> (price impact) → you can't repay → revert zone</div>
+    <div class="legend">
+      <span class="k"><span class="dot" style="background:var(--green)"></span>profit</span>
+      <span class="k"><span class="dot" style="background:var(--red)"></span>revert zone (profit &lt; 0)</span>
+      <span class="k"><span class="dot" style="background:var(--gold)"></span>your current borrow</span>
+    </div>
+    <svg viewBox="0 0 900 220" role="img" aria-label="profit vs borrow size">
+      <line x1="52" y1="14" x2="52" y2="180" stroke="#2c2740"/>
+      <line id="zero" x1="52" x2="884" stroke="#5a5470" stroke-dasharray="3 4"/>
+      <rect id="revzone" y="14" height="166" fill="#ff7b72" opacity="0.10"/>
+      <path id="curve" fill="none" stroke="#4ade80" stroke-width="2.5"/>
+      <line id="nowL" y1="14" y2="180" stroke="#fbbf24" stroke-dasharray="2 4"/>
+      <circle id="nowDot" r="5" fill="#fbbf24"/>
+      <text id="peakT" fill="#4ade80" font-size="11" font-family="monospace" text-anchor="middle"></text>
+      <text x="468" y="205" fill="#9a92b3" font-size="11" text-anchor="middle" font-family="monospace">flash-borrow (tUSDC) →</text>
+    </svg>
+  </div>
+
+  <div class="card">
+    <div class="teach" style="background:none;border:none;padding:0;color:var(--text)">
+      <b style="color:var(--gold)">Zero capital.</b> You never owned the borrowed tUSDC — you got it and gave it back inside one transaction. No collateral, because there is nothing to seize: if you don't repay by the last line of the tx, the chain <b>rewinds the whole thing</b> as if it never ran.<br><br>
+      <b style="color:var(--gold)">All-or-nothing (atomicity).</b> Borrow, buy, sell, repay are one indivisible action. Profit ≥ 0 → it commits, you keep the leftover. Profit &lt; 0 → the repay line fails → <b>everything undoes</b>. Your only real cost is gas. No holding, no HF, no keeper can catch you — there is no "position" to catch.<br><br>
+      <b style="color:var(--gold)">Why more borrow ≠ more profit.</b> Buying MAX on the cheap DEX pushes its price <b>up</b>; selling on the dear DEX pushes its price <b>down</b>. Your own trades close the very gap you're eating (price impact / §08). Past the optimum, the gap is gone and fees dominate → profit turns negative → revert. <b>The arb is self-limiting; the pool's depth caps your take.</b><br><br>
+      <b style="color:var(--gold)">Why this can't be done by hand.</b> Manually you'd need three separate transactions — and after step 1 you'd be holding an <b>uncollateralized</b> loan the chain would never have given you. Atomicity only exists <b>inside</b> one tx, so a flash loan <b>must</b> be a contract. This is the door from "click by hand" to "write a program."
+    </div>
+  </div>
+  <div class="foot">MB/CSE 599 · AI Finance · flash loan = zero-capital atomic arbitrage · next: the real one-click flash-loan contract</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const fmt=(v,d=0)=>v.toLocaleString(undefined,{maximumFractionDigits:d});
+const CH={max:100, usd:190000}, DE={max:100, usd:210000}, SWAP=0.003, FLASH=0.0009;
+const X0=52,X1=884,Y0=14,Y1=180, DMAX=25000;
+
+function sim(D){
+  const inNet=D*(1-SWAP);
+  const maxBought = CH.max*inNet/(CH.usd+inNet);            // buy MAX on cheap pool
+  const sellNet=maxBought*(1-SWAP);
+  const usdOut = DE.usd*sellNet/(DE.max+sellNet);           // sell MAX on dear pool
+  const repay = D*(1+FLASH), fee=D*FLASH;
+  return {D, maxBought, usdOut, repay, fee, profit:usdOut-repay};
+}
+// find peak + break-even
+let peak={profit:-1e9,D:0}, breakEven=DMAX;
+for(let D=0;D<=DMAX;D+=50){ const s=sim(D); if(s.profit>peak.profit)peak={profit:s.profit,D}; }
+for(let D=peak.D;D<=DMAX;D+=50){ if(sim(D).profit<0){ breakEven=D; break; } }
+
+const px=D=>X0+(D/DMAX)*(X1-X0);
+let PMAX=Math.max(peak.profit*1.25,50), PMIN=Math.min(sim(DMAX).profit*1.1,-50);
+const py=p=>Y1-((p-PMIN)/(PMAX-PMIN))*(Y1-Y0);
+
+function drawCurve(){
+  let d="";
+  for(let D=0;D<=DMAX;D+=200){ const p=sim(D).profit; d+=(D===0?"M":"L")+px(D).toFixed(1)+","+py(p).toFixed(1)+" "; }
+  $("curve").setAttribute("d",d);
+  $("zero").setAttribute("y1",py(0)); $("zero").setAttribute("y2",py(0));
+  $("revzone").setAttribute("x",px(breakEven)); $("revzone").setAttribute("width",Math.max(0,X1-px(breakEven)));
+  $("peakT").setAttribute("x",px(peak.D)); $("peakT").setAttribute("y",py(peak.profit)-8);
+  $("peakT").textContent="peak +"+fmt(peak.profit)+" @ "+fmt(peak.D);
+}
+
+let animating=false;
+function setNodes(cls){ for(let i=0;i<5;i++){ $("n"+i).className="node"+(cls&&cls[i]?" "+cls[i]:""); } }
+
+function render(){
+  const D=+$("d").value, s=sim(D);
+  $("dLbl").textContent=fmt(D); $("feeLbl").textContent=fmt(s.fee,1);
+  $("v0").textContent="borrow "+fmt(D); $("v3").textContent="repay "+fmt(s.repay);
+  $("v4").textContent=(s.profit>=0?"+":"−")+fmt(Math.abs(s.profit));
+  $("gB").textContent=fmt(D); $("gM").textContent=fmt(s.maxBought,3)+" MAX";
+  $("gU").textContent=fmt(s.usdOut); $("gR").textContent=fmt(s.repay);
+  const nx=px(D); $("nowL").setAttribute("x1",nx); $("nowL").setAttribute("x2",nx);
+  $("nowDot").setAttribute("cx",nx); $("nowDot").setAttribute("cy",py(s.profit));
+  if(!animating){
+    const ok=s.profit>=0;
+    $("outcome").className="outcome "+(ok?"win":"lose");
+    $("outcome").innerHTML= D===0 ? "Set a borrow amount and execute." :
+      ok ? `✓ TX WOULD SUCCEED — profit <b>+${fmt(s.profit)} tUSDC</b> from $0 capital<small>repay ${fmt(s.repay)} ≤ ${fmt(s.usdOut)} you got from the arb</small>`
+         : `✗ TX WOULD REVERT — can't repay<small>you got ${fmt(s.usdOut)} but owe ${fmt(s.repay)} → short ${fmt(s.repay-s.usdOut)} → everything undone, loss = only gas</small>`;
+  }
+  drawCurve();
+}
+
+function execute(){
+  if(animating) return; animating=true; $("execBtn").disabled=true;
+  const D=+$("d").value, s=sim(D), ok=s.profit>=0;
+  const seq=[["on","","","",""],["ok","on","","",""],["ok","ok","on","",""],
+            ["ok","ok","ok",ok?"on":"bad",""]];
+  let i=0;
+  setNodes(seq[0]);
+  $("outcome").className="outcome"; $("outcome").innerHTML="⏳ executing… (all inside one transaction)";
+  const iv=setInterval(()=>{
+    i++;
+    if(i<seq.length){ setNodes(seq[i]); }
+    else{
+      clearInterval(iv);
+      if(ok){ setNodes(["ok","ok","ok","ok","ok"]);
+        $("outcome").className="outcome win";
+        $("outcome").innerHTML=`✅ TX COMMITTED — you kept <b>+${fmt(s.profit)} tUSDC</b>, started with <b>$0</b><small>borrowed ${fmt(D)} → bought ${fmt(s.maxBought,3)} MAX cheap → sold dear for ${fmt(s.usdOut)} → repaid ${fmt(s.repay)}</small>`;
+      } else { setNodes(["bad","bad","bad","bad","bad"]);
+        $("outcome").className="outcome lose";
+        $("outcome").innerHTML=`⛔ TX REVERTED — repay ${fmt(s.repay)} > ${fmt(s.usdOut)} you got → <b>everything undone</b><small>as if it never happened · you lost only gas · zero downside</small>`;
+      }
+      animating=false; $("execBtn").disabled=false;
+    }
+  }, 620);
+}
+render();
+</script>
+</body>
+</html>

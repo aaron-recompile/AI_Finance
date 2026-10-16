@@ -1,0 +1,17 @@
+# Foundry build artifacts
+cache/
+out/
+foundry-pp/
+
+# Broadcast: ignore local (anvil) runs and dry-runs; keep real testnet records.
+# (broadcast files contain addresses + tx hashes, no private keys.)
+broadcast/*/31337/
+broadcast/**/dry-run/
+
+# Secrets — never commit
+.env
+.env.*
+.env.faucet
+
+# macOS
+.DS_Store
