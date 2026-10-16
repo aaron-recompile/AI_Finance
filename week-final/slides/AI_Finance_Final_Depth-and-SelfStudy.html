@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Map &amp; Its Edges — where to go deeper</title>
+<style>
+  :root{--bg:#0d0b14;--card:#161320;--border:#2c2740;--text:#f4f1fb;--muted:#9a92b3;
+    --green:#4ade80;--red:#ff7b72;--gold:#fbbf24;--purple:#8b5cf6;--blue:#60a5fa;--pink:#ff2e88;--mono:ui-monospace,Menlo,monospace;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:radial-gradient(1200px 800px at 75% -10%,#1a1330,var(--bg));color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:7vh 9vw 13vh;animation:fade .35s ease;overflow:hidden}
+  .slide.on{display:flex}
+  .slide.center{align-items:center;text-align:center}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .kick{font-family:var(--mono);font-size:clamp(12px,1.5vw,16px);color:var(--purple);letter-spacing:1px;text-transform:uppercase;margin-bottom:3vh}
+  h1{font-size:clamp(36px,6vw,66px);line-height:1.06;margin-bottom:3vh}
+  h1 .g{background:linear-gradient(90deg,var(--blue),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+  h2{font-size:clamp(30px,5vw,50px);line-height:1.12;margin-bottom:4vh}
+  h2 .g{background:linear-gradient(90deg,var(--pink),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+  ul{list-style:none;font-size:clamp(19px,2.9vw,32px);line-height:1.6}
+  li{margin:1.6vh 0;padding-left:1.3em;position:relative}
+  li::before{content:"▸";position:absolute;left:0;color:var(--purple)}
+  li b{color:var(--text)}
+  .big{font-size:clamp(22px,3.6vw,40px);line-height:1.35;color:var(--text)}
+  .note{font-size:clamp(14px,1.8vw,20px);color:var(--muted);margin-top:4vh;line-height:1.5;max-width:56ch}
+  .center .note{margin-left:auto;margin-right:auto}
+  .term{font-family:var(--mono);color:var(--blue)}
+  .say{font-family:var(--mono);color:var(--green)}
+  table{border-collapse:collapse;font-size:clamp(17px,2.4vw,28px);margin-top:1vh;width:100%;max-width:980px}
+  td,th{padding:1.3vh 1.3vw;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.8em}
+  td:first-child{font-family:var(--mono);color:var(--gold);white-space:nowrap}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:2.2vw;margin-top:1vh;width:100%;max-width:980px}
+  .col{border:1px solid var(--border);border-radius:14px;padding:2.4vh 1.8vw}
+  .col h3{font-size:clamp(15px,1.9vw,22px);margin-bottom:1.2vh;color:var(--gold)}
+  .col.deep h3{color:var(--green)}
+  .col ul{font-size:clamp(14px,1.9vw,21px)} .col li{margin:.8vh 0} .col li::before{content:"·"}
+  .foot{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;
+    padding:12px 22px;font-family:var(--mono);font-size:12px;color:var(--muted);background:linear-gradient(0deg,#0d0b14,transparent)}
+  .bar{position:fixed;left:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--green));transition:width .3s}
+</style>
+</head>
+<body>
+
+<!-- 1 -->
+<section class="slide on center">
+  <div class="kick">AI Finance · Final class</div>
+  <h1>The Map &amp; <span class="g">Its Edges</span></h1>
+  <div class="big">Where this course stops — and where to go next.</div>
+  <div class="note">An honest slide. This repo is an excellent <b>map</b> and <b>scaffold</b> — not an encyclopedia, and not a production manual. Here is exactly where the depth runs out, and the direction to dig.</div>
+</section>
+
+<!-- 2 -->
+<section class="slide center">
+  <div class="kick">The honest version</div>
+  <h2>A map, not the territory</h2>
+  <div class="big">In seven weeks you built a working view of AI + Quant + Web3 — end to end.<br>But a pro on a quant desk, a core protocol dev, or a senior researcher would see four clear ceilings.</div>
+  <div class="note">That's not a flaw — it's the design. Knowing where the edges are is how you cross them.</div>
+</section>
+
+<!-- 3 -->
+<section class="slide">
+  <div class="kick">Edge 1 · DeFi</div>
+  <h2>We stopped at the simple version</h2>
+  <ul>
+    <li><b>AMM:</b> just <span class="term">x·y=k</span> (Uniswap v2). No v3/v4 — concentrated liquidity, tick math, range orders, custom hooks.</li>
+    <li><b>Lending:</b> basic over-collateralization + health factor. Not Aave v3 / Compound v3 — isolation mode, E-mode, dynamic rate curves, liquidation-penalty and on-chain risk-parameter modeling.</li>
+  </ul>
+  <div class="note">You learned what a pool and a loan <i>are</i>. The depth is in the risk math around them.</div>
+</section>
+
+<!-- 4 -->
+<section class="slide">
+  <div class="kick">Edge 2 · Quant</div>
+  <h2>Demo strategies, not alpha</h2>
+  <ul>
+    <li><b>Strategies</b> were the classics — trend, mean-reversion, cash-and-carry. No slippage optimization, no order-book microstructure (L2/L3 parsing), no real alpha extraction.</li>
+    <li><b>Backtest &amp; execution</b> were skeletons — API wired up. Not low-latency infra, overfitting prevention, or real execution algorithms (TWAP/VWAP, done properly).</li>
+  </ul>
+  <div class="note">You can place an order through code. Making it <i>profitable</i> at scale is a different craft.</div>
+</section>
+
+<!-- 5 -->
+<section class="slide">
+  <div class="kick">Edge 3 · MEV</div>
+  <h2>We assumed a friendly chain</h2>
+  <ul>
+    <li>Week 3's flash loans and arbitrage assumed <b>ideal</b> on-chain conditions.</li>
+    <li>On real mainnet an unprotected arb is <b>front-run or sandwiched</b> by a searcher in the mempool — close to 100% of the time.</li>
+    <li>We never touched the dark forest: <span class="term">private RPC (Flashbots Protect)</span>, bundle construction, gas auctions (PGA), priority-fee bidding.</li>
+  </ul>
+  <div class="note">On-chain quants fight this every single day. It is the part a demo can't show you.</div>
+</section>
+
+<!-- 6 -->
+<section class="slide">
+  <div class="kick">Edge 4 · AI agents</div>
+  <h2>Wrappers, not deep AI-finance</h2>
+  <ul>
+    <li>Week 4's agent is <b>tool-use / function-calling</b>: wrap an API or contract as a skill, let the LLM decide and call.</li>
+    <li>We never went into deeper AI + finance — <b>RL</b> for dynamic market making, <b>LLM</b> sentiment on filings and on-chain events, or on-chain <b>ML / ZK-ML</b> prediction.</li>
+  </ul>
+  <div class="note">The agent is the <i>driver</i>. The models that give it an edge are a whole field below it.</div>
+</section>
+
+<!-- 7 -->
+<section class="slide center">
+  <div class="kick">Why</div>
+  <h2>It's the <span class="g">design</span>, not an accident</h2>
+  <div class="two">
+    <div class="col">
+      <h3>An intro, cross-disciplinary course</h3>
+      <ul>
+        <li>"Can code, new to crypto" — or "knows finance, can't write Solidity."</li>
+        <li>So: breadth and "it runs, you can see it" (the 5-rung ladder) over drilling one point to the floor.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Seven weeks</h3>
+      <ul>
+        <li>ETH/Base → Solidity/Foundry → DeFi legos → flash loans → agents → CEX → derivatives → x402 → Farcaster.</li>
+        <li>1–2 weeks each. There is no room to go deep — by design.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="slide">
+  <div class="kick">Where to dig</div>
+  <h2>Four directions down</h2>
+  <table>
+    <tr><th>If the ceiling is…</th><th>Go deeper into</th></tr>
+    <tr><td>DeFi</td><td>Uniswap <b>v3 / v4</b> — concentrated liquidity, ticks, hooks; Aave/Compound risk models</td></tr>
+    <tr><td>Quant</td><td><b>Microstructure</b> + execution — L2/L3 data, slippage, TWAP/VWAP, honest backtesting</td></tr>
+    <tr><td>On-chain</td><td><b>MEV / Flashbots</b> — private RPC, bundles, the mempool game</td></tr>
+    <tr><td>AI</td><td><b>RL / ML finance</b> — RL market making, LLM event sentiment, on-chain ML / ZK-ML</td></tr>
+  </table>
+  <div class="note">Pick one. Depth in one beats breadth in four when you want a job on an infra or on-chain-arb team.</div>
+</section>
+
+<!-- 9 -->
+<section class="slide center">
+  <div class="kick">The takeaway</div>
+  <h2>You have the <span class="g">map</span>. Now pick a road.</h2>
+  <div class="big">This course gets you a full-picture view of AI + Quant + Web3 in a few weeks.<br>Professional depth lives one level down — along v3/v4, MEV, HFT infra, and RL/ML finance.</div>
+  <div class="note">A map's whole job is to show you where to walk next. That part is yours.</div>
+</section>
+
+<div class="foot"><span>AI Finance · The Map &amp; Its Edges</span><span><kbd>←</kbd> <kbd>→</kbd> · <span id="num">1 / 9</span></span></div>
+<div class="bar" id="bar"></div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=0;
+  function show(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('on',k===i));
+    document.getElementById('num').textContent=(i+1)+' / '+slides.length;
+    document.getElementById('bar').style.width=((i+1)/slides.length*100)+'%';
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ') show(i+1);
+    else if(e.key==='ArrowLeft'||e.key==='PageUp') show(i-1);
+    else if(e.key==='Home') show(0); else if(e.key==='End') show(slides.length-1);
+  });
+  document.addEventListener('click',e=>{ if(e.clientX > window.innerWidth*0.35) show(i+1); else show(i-1); });
+  show(0);
+</script>
+</body>
+</html>

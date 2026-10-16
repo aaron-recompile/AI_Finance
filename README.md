@@ -134,6 +134,18 @@ For six weeks the agent learned to **earn**. Week 7 adds the last two verbs — 
 
 ---
 
+## Week Final — Capstone & Wrap-Up
+
+Look back at the whole arc, where everything lives, where to go next on your own — and a walkthrough where one agent runs the entire course.
+
+| What | Where |
+|------|-------|
+| 🖥️ **Wrap-up slides** | [`week-final/slides/AI_Finance_Final_WrapUp.html`](week-final/slides/AI_Finance_Final_WrapUp.html) — the arc, where it lives, required vs extra, the design on purpose |
+| 🖥️ **Depth & self-study slides** | [`week-final/slides/AI_Finance_Final_Depth-and-SelfStudy.html`](week-final/slides/AI_Finance_Final_Depth-and-SelfStudy.html) — honest limits + a path to keep going |
+| 🤖 **Agent walkthrough (prompts)** | [`week-final/agent-prompts/`](week-final/agent-prompts/) — one-line prompts that make an agent run the whole course week by week, plus the guardrails that make it stop |
+
+---
+
 ## Repository layout
 
 Each week is one folder with the same shape — look in the same place every week:

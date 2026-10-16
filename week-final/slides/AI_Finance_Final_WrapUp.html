@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Finance — Wrap-Up</title>
+<style>
+  :root{--bg:#0d0b14;--card:#161320;--border:#2c2740;--text:#f4f1fb;--muted:#9a92b3;
+    --green:#4ade80;--red:#ff7b72;--gold:#fbbf24;--purple:#8b5cf6;--blue:#60a5fa;--pink:#ff2e88;--mono:ui-monospace,Menlo,monospace;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:radial-gradient(1200px 800px at 75% -10%,#1a1330,var(--bg));color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:7vh 9vw 13vh;animation:fade .35s ease;overflow:hidden}
+  .slide.on{display:flex}
+  .slide.center{align-items:center;text-align:center}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .kick{font-family:var(--mono);font-size:clamp(12px,1.5vw,16px);color:var(--purple);letter-spacing:1px;text-transform:uppercase;margin-bottom:3vh}
+  h1{font-size:clamp(36px,6vw,66px);line-height:1.06;margin-bottom:3vh}
+  h1 .g{background:linear-gradient(90deg,var(--blue),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+  h2{font-size:clamp(28px,5vw,48px);line-height:1.12;margin-bottom:3.5vh}
+  h2 .g{background:linear-gradient(90deg,var(--pink),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+  ul{list-style:none;font-size:clamp(17px,2.5vw,27px);line-height:1.55}
+  li{margin:1.2vh 0;padding-left:1.3em;position:relative}
+  li::before{content:"▸";position:absolute;left:0;color:var(--purple)}
+  li b{color:var(--text)}
+  .big{font-size:clamp(22px,3.6vw,40px);line-height:1.35;color:var(--text)}
+  .note{font-size:clamp(14px,1.8vw,20px);color:var(--muted);margin-top:3.5vh;line-height:1.5;max-width:60ch}
+  .center .note{margin-left:auto;margin-right:auto}
+  .term{font-family:var(--mono);color:var(--blue)}
+  .say{font-family:var(--mono);color:var(--green)}
+  table{border-collapse:collapse;font-size:clamp(15px,2.1vw,25px);margin-top:1vh;width:100%;max-width:1000px}
+  td,th{padding:1.1vh 1.2vw;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.8em}
+  td:first-child{font-family:var(--mono);color:var(--gold);white-space:nowrap}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:2.2vw;margin-top:1vh;width:100%;max-width:1000px}
+  .col{border:1px solid var(--border);border-radius:14px;padding:2.2vh 1.8vw}
+  .col h3{font-size:clamp(15px,1.9vw,22px);margin-bottom:1.2vh}
+  .col.must{border-color:color-mix(in srgb,var(--red) 45%,var(--border))}
+  .col.must h3{color:var(--red)}
+  .col.bonus h3{color:var(--purple)}
+  .col ul{font-size:clamp(14px,1.9vw,21px)} .col li{margin:.8vh 0} .col li::before{content:"·"}
+  .pill{display:inline-block;font-family:var(--mono);font-size:.7em;padding:1px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted);margin-left:.5em}
+  .foot{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;
+    padding:12px 22px;font-family:var(--mono);font-size:12px;color:var(--muted);background:linear-gradient(0deg,#0d0b14,transparent)}
+  .bar{position:fixed;left:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--green));transition:width .3s}
+</style>
+</head>
+<body>
+
+<!-- 1 -->
+<section class="slide on center">
+  <div class="kick">AI Finance · MB/CSE 599 · Wrap-up</div>
+  <h1>Seven weeks,<br><span class="g">one picture</span></h1>
+  <div class="big">Everything we built — and where it all lives.</div>
+  <div class="note">All testnet. Never real money. You wrote the code, and an agent wrote it with you — and nothing you built is a slide.</div>
+</section>
+
+<!-- 2 -->
+<section class="slide center">
+  <div class="kick">How we learned every topic</div>
+  <h2>The <span class="g">5-rung ladder</span></h2>
+  <div class="big flow" style="font-family:var(--mono)"><b>see</b> → <b>use</b> it in a wallet/site → <b>drive</b> it with code → <b>build</b> it → hand it to your <b>agent</b></div>
+  <div class="note">Every week climbed the same ladder. Where you stopped was your track.</div>
+</section>
+
+<!-- 3 -->
+<section class="slide">
+  <div class="kick">The arc</div>
+  <h2>What we built, week by week</h2>
+  <table>
+    <tr><td>W1</td><td>Keys, transactions, gas — then issue your own token and send it to a classmate</td></tr>
+    <tr><td>W2</td><td>DeFi legos — an AMM (<span class="term">x·y=k</span>), lending &amp; liquidation, yield farming</td></tr>
+    <tr><td>W3</td><td>Composability — two-DEX arbitrage, flash loans, and bots on-chain</td></tr>
+    <tr><td>W4</td><td>From tool to agent — OpenClaw / Jarvis, behind a guardrail</td></tr>
+    <tr><td>W5</td><td>CEX execution — OKX &amp; Alpaca, and cash-and-carry</td></tr>
+    <tr><td>W6</td><td>Derivatives — perps on Hyperliquid, and prediction markets</td></tr>
+    <tr><td>W7</td><td>x402 &amp; Farcaster — the agent learns to <b>pay</b> and to <b>speak</b></td></tr>
+  </table>
+</section>
+
+<!-- 4 -->
+<section class="slide">
+  <div class="kick">Where it lives · 1 — GitHub</div>
+  <h2>The code &amp; the demos</h2>
+  <ul>
+    <li><b>Repo:</b> <span class="term">github.com/aaron-recompile/AI_Finance</span> — week-01 … week-07, each with slides / code / demos.</li>
+    <li><b>Labs you can click:</b> <span class="term">/labs</span> — AMM, lending, farming, arbitrage, flash-loan, a bot arena, and three venues on one engine.</li>
+    <li><b>Concept videos:</b> 20 short explainers — <span class="term">aaron-recompile.github.io/AI_Finance/concept-videos</span></li>
+    <li><b>Basics, once:</b> <span class="term">week-01/foundations-reference-pack.md</span> + <span class="term">command-concepts.md</span></li>
+  </ul>
+</section>
+
+<!-- 5 -->
+<section class="slide">
+  <div class="kick">Where it lives · 2 — Classroom &amp; Drive</div>
+  <h2>Readings &amp; recordings</h2>
+  <ul>
+    <li><b>Classroom</b> — every reading as a Material: Foundry, DeFi Lending, On-Chain "making money with the rules," OpenClaw, Always-On Agents watch list, CEX pre-reading, Quant Strategies &amp; Arbitrage, Five Interviews.</li>
+    <li><b>Class Drive</b> — slides, materials, and <b>recordings</b> of every session.</li>
+  </ul>
+  <div class="note">GitHub is what you build on; Classroom is the readings and the homework; Drive is the recordings.</div>
+</section>
+
+<!-- 6 -->
+<section class="slide center">
+  <div class="kick">Grading — what's required vs extra</div>
+  <h2>Two assignments + a project</h2>
+  <div class="two">
+    <div class="col must">
+      <h3>Required</h3>
+      <ul>
+        <li><b>HW 1</b> — Environment Setup (SETUP.md Part A + wallet)</li>
+        <li><b>HW 2</b> — Use the Legos (swap · farm · flash-loan)</li>
+        <li><b>Mid-term Project</b> — Make Something That Trades On-Chain <span class="pill">now the Final</span></li>
+      </ul>
+    </div>
+    <div class="col bonus">
+      <h3>Bonus · extra credit</h3>
+      <ul>
+        <li>HW 3 — Put Yourself on GitHub</li>
+        <li>HW 4 — Trade the Three Exchanges (the live spot · perp · prediction venues)</li>
+        <li>Background &amp; Learning-Goals survey</li>
+        <li>5–20 min presentation (sign up: 10/15 or 10/17)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note">Only three things are required — and there are lots of ways to earn extra credit on top.</div>
+</section>
+
+<!-- 6b · design intent -->
+<section class="slide center">
+  <div class="kick">My design, on purpose</div>
+  <h2>Everything given.<br><span class="g">Almost nothing required.</span></h2>
+  <div class="big">I hand you the whole map — seven weeks, full-stack, every piece built by hand. Only <b>three</b> things are required. Everything else is extra credit — climb as high as you want.</div>
+  <div class="note">This course is a <b>ladder, not a filter</b>. I'd rather pull you up than keep you out.</div>
+</section>
+
+<!-- 7 -->
+<section class="slide center">
+  <div class="kick">The last two classes</div>
+  <h2>10/15 &amp; 10/17</h2>
+  <div class="big">Presentations · questions · finish your homework.<br>The mid-term project is your Final — that's where you prove the ladder.</div>
+  <div class="note">Sign up for a 5–10 min slot if you want to present; otherwise bring questions.</div>
+</section>
+
+<!-- 8 -->
+<section class="slide center">
+  <div class="kick">The real takeaway</div>
+  <h2>You didn't study it.<br><span class="g">You built it.</span></h2>
+  <div class="big">A map and a skeleton — but every piece you made <b>with your own hands</b>: a key, a token, an AMM, a flash loan, an agent that trades, pays, and posts.</div>
+  <div class="note">All on testnet, all real code — nothing you built is a slide. The map is yours; where to walk next is yours too.</div>
+</section>
+
+<div class="foot"><span>AI Finance · Wrap-Up</span><span><kbd>←</kbd> <kbd>→</kbd> · <span id="num">1 / 8</span></span></div>
+<div class="bar" id="bar"></div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=0;
+  function show(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('on',k===i));
+    document.getElementById('num').textContent=(i+1)+' / '+slides.length;
+    document.getElementById('bar').style.width=((i+1)/slides.length*100)+'%';
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ') show(i+1);
+    else if(e.key==='ArrowLeft'||e.key==='PageUp') show(i-1);
+    else if(e.key==='Home') show(0); else if(e.key==='End') show(slides.length-1);
+  });
+  document.addEventListener('click',e=>{ if(e.clientX > window.innerWidth*0.35) show(i+1); else show(i-1); });
+  show(0);
+</script>
+</body>
+</html>
