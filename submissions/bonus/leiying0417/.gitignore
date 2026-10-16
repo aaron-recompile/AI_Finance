@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+vendor/
+.secrets/
+.env
+.env.*
+*.key
+bots.keys.json
+reports/**
+!reports/dex-arbitrage/
+!reports/dex-arbitrage/RouterA-verified.json
