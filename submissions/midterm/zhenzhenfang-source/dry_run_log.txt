@@ -1,0 +1,9 @@
+liquidity-aware-spread-monitor heartbeat every 10s  [DRY-RUN]  (Ctrl-C to stop)
+[08:26:39] liquidity-aware-spread-monitor: PoolA=1903.9776, PoolB=1916.9513 tUSDC/MAX; gap=0.68%; liquidity A/B=299362/231955 tUSDC; signal=skip -> skip
+[08:26:51] liquidity-aware-spread-monitor: PoolA=1903.9776, PoolB=1916.9513 tUSDC/MAX; gap=0.68%; liquidity A/B=299362/231955 tUSDC; signal=skip -> skip
+[08:27:03] liquidity-aware-spread-monitor: PoolA=1903.9776, PoolB=1916.9513 tUSDC/MAX; gap=0.68%; liquidity A/B=299362/231955 tUSDC; signal=skip -> skip
+[08:27:16] liquidity-aware-spread-monitor: PoolA=1903.9776, PoolB=1916.9513 tUSDC/MAX; gap=0.68%; liquidity A/B=299362/231955 tUSDC; signal=skip -> skip
+[08:27:28] liquidity-aware-spread-monitor: PoolA=1903.9776, PoolB=1916.9513 tUSDC/MAX; gap=0.68%; liquidity A/B=299362/231955 tUSDC; signal=skip -> skip
+[08:27:41] liquidity-aware-spread-monitor: PoolA=1903.9776, PoolB=1916.9513 tUSDC/MAX; gap=0.68%; liquidity A/B=299362/231955 tUSDC; signal=skip -> skip
+[08:27:53] liquidity-aware-spread-monitor: PoolA=1903.9776, PoolB=1916.9513 tUSDC/MAX; gap=0.68%; liquidity A/B=299362/231955 tUSDC; signal=skip -> skip
+[08:28:05] liquidity-aware-spread-monitor: PoolA=1903.9776, PoolB=1916.9513 tUSDC/MAX; gap=0.68%; liquidity A/B=299362/231955 tUSDC; signal=skip -> skip
