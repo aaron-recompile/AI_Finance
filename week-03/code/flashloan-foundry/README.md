@@ -15,7 +15,10 @@ needed. Everything (two DEXes, the lender, the bot) deploys together.
 | `script/ResetGap.s.sol` | Re-open the 1950 / 2050 price gap after arbitrage has closed it (to re-run the class demo) |
 
 ## Run the tests (no network, no private key)
-
+// ORIGINAL CODE (Sends profit to the course teacher's wallet):
+IERC20(usdc).transfer(owner, profit);// MODIFIED CODE (Sends profit to whoever triggered the transaction):
+IERC20(
+usdc).transfer(msg.sender, profit);
 ```bash
 forge test -vv
 ```
