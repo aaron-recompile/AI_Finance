@@ -46,7 +46,7 @@ A single order-book matching engine underlies three venues. Each issues its own 
 
 ![Architecture](architecture.svg)
 
-**Spot** — instant matching on the book, with a background market maker to keep it liquid.
+**Spot** — instant matching on the book, with a background market maker to keep it liquid. → **[open the live demo](https://ai-finance.tail6afcc7.ts.net/)** *(runs on a class server; shared state, may be mid-reset)*
 
 ![Spot CEX](img/spot-cex.png)
 
