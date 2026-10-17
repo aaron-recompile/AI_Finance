@@ -1,0 +1,88 @@
+Readme
+
+HW2 AMM follow-up
+
+GitHub: `venaliang-insiliconvalley`
+
+My original HW2 submission consisted of screenshots from the class web interfaces
+for GitHub setup, a swap, farming, and flash-loan arbitrage. I wrote the code in
+this folder afterward as an additional learning exercise for the GitHub bonus.
+It is not code that I submitted with the original HW2 homework. I used AI
+assistance to develop and check this follow-up.
+
+## Files
+
+- `amm_slippage.py`: an offline constant-product AMM calculator comparing three
+  tUSDC-to-MAX trade sizes from identical starting reserves, with a 0.3% fee.
+  It reports output, average execution price, curve price impact excluding the
+  fee, and total execution shortfall including the fee.
+
+## Run
+
+Python 3 and its standard library are sufficient:
+
+```sh
+python amm_slippage.py
+```
+
+The reserves are illustrative, not current chain data. Each row is an independent
+scenario, not a series of swaps on an evolving pool. No transaction is sent and
+no wallet or private key is needed. Decimal arithmetic models continuous amounts;
+the script does not reproduce integer token-unit rounding in the deployed contract.
+
+## What I learned
+
+A larger swap consumes more of the pool's liquidity and receives a worse average
+price. The 0.3% fee adds another cost. Expected curve price impact is different
+from unexpected slippage caused by market changes between quoting and execution.
+The script uses the standard constant-product formula taught in the course; the
+comparison and reporting code form my follow-up exercise, not a novel trading strategy.
+
+## Submission scope
+
+This is a new supplement to HW2 rather than recovered original homework code.
+Whether it satisfies the bonus requirement to collect previous homework code is
+for the instructor to decide. My midterm strategy is submitted separately in PR #31.
+
+"""HW2 follow-up: compare trade sizes in a constant-product AMM.
+
+Offline examples, not live prices. Each row starts with the same reserves.
+No wallet, private key, network connection or third-party package is needed.
+"""
+from decimal import Decimal, getcontext
+
+getcontext().prec = 40
+D = Decimal
+
+
+def simulate_swap(amount, reserve_in, reserve_out, fee=D("0.003")):
+    """Human token units; use decimal strings to avoid binary-float rounding."""
+    amount, reserve_in, reserve_out, fee = map(D, map(str, (amount, reserve_in, reserve_out, fee)))
+    if not all(x.is_finite() for x in (amount, reserve_in, reserve_out, fee)):
+        raise ValueError("Inputs must be finite")
+    if min(amount, reserve_in, reserve_out) <= 0 or not D(0) <= fee < D(1):
+        raise ValueError("Use positive amounts/reserves and a fee from 0 to less than 1")
+    net_input = amount * (1 - fee)
+    output = reserve_out * net_input / (reserve_in + net_input)
+    spot_output = amount * reserve_out / reserve_in
+    fee_adjusted_spot = net_input * reserve_out / reserve_in
+    return {
+        "output": output,
+        "average_price": amount / output,
+        "curve_impact_pct": (1 - output / fee_adjusted_spot) * 100,
+        "total_shortfall_pct": (1 - output / spot_output) * 100,
+    }
+
+
+if __name__ == "__main__":
+    print("HW2 follow-up: AMM trade size and execution cost")
+    print("Independent examples: pool = 100,000 tUSDC + 1,000 MAX; fee = 0.3%")
+    print("Curve impact excludes the fee; total shortfall includes both fee and curve impact.\n")
+    print(f"{'tUSDC in':>12} {'MAX out':>14} {'tUSDC/MAX':>14} {'Curve impact':>15} {'Total shortfall':>17}")
+    for amount in (100, 1000, 10000):
+        row = simulate_swap(amount, 100000, 1000)
+        print(f"{amount:12,.0f} {row['output']:14.6f} {row['average_price']:14.4f} "
+              f"{row['curve_impact_pct']:14.4f}% {row['total_shortfall_pct']:16.4f}%")
+    print("\nConclusion: larger trades obtain a worse average price from this same pool.")
+    print("This is deterministic price impact, not unexpected slippage between quote and execution.")
+
