@@ -10,7 +10,17 @@ import sys
 from web3 import Web3
 
 HERE = Path(__file__).resolve().parent
-LAB = HERE.parents[1] / "week-03" / "code" / "lab-bot"
+
+
+def _find_repo_root():
+    for candidate in (HERE, *HERE.parents):
+        if (candidate / "week-03" / "code" / "lab-bot").is_dir():
+            return candidate
+    return None
+
+
+REPO_ROOT = _find_repo_root()
+LAB = REPO_ROOT / "week-03" / "code" / "lab-bot" if REPO_ROOT else Path("/nonexistent")
 WALLET = "0xB03B27ea60D9fcc73366bd0ECB41945E91307209"
 ADAPTER = "zhenzhenfang_strategy_adapter"
 
@@ -29,6 +39,7 @@ def main():
 
     # The adapter only needs this public address to read the wallet balance.
     os.environ["AGENT_ADDRESS"] = address
+    sys.path.insert(0, str(HERE))
     sys.path.insert(0, str(LAB))
     sys.argv = ["orchestrator.py", "--only", ADAPTER, "--interval", "12"]
 

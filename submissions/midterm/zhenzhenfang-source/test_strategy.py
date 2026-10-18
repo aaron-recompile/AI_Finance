@@ -64,9 +64,12 @@ class DecisionTests(unittest.TestCase):
     def test_adapter_fire_is_fail_closed(self):
         fake_chain = types.ModuleType("chain")
         fake_chain.ADDR = {}
+        fake_chain.ABI = {}
         fake_chain.CHAIN_ID = 84532
+        fake_chain.acct_of = lambda _key: None
         fake_chain.at = lambda *_args: None
         fake_chain.erc20 = lambda *_args: None
+        fake_chain.send = lambda *_args, **_kwargs: None
         fake_chain.w3 = types.SimpleNamespace()
         adapter_spec = importlib.util.spec_from_file_location(
             "adapter_under_test", HERE / "zhenzhenfang_strategy_adapter.py"
@@ -74,7 +77,7 @@ class DecisionTests(unittest.TestCase):
         adapter = importlib.util.module_from_spec(adapter_spec)
         with patch.dict(sys.modules, {"chain": fake_chain}):
             adapter_spec.loader.exec_module(adapter)
-        with self.assertRaisesRegex(RuntimeError, "dry-run only"):
+        with self.assertRaisesRegex(RuntimeError, "orchestrator LIVE tick"):
             adapter.fire({"hit": True})
 
 
