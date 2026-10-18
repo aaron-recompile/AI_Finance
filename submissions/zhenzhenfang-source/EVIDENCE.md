@@ -26,3 +26,11 @@ env -u AGENT_KEY -u PRIVATE_KEY -u COURSE_TEST_SWAP_AUTHORIZED \
 ```
 
 The command reads the public RPC and the fixed public wallet address only. It writes the fresh runner state to `dry_run_state.json`; it does not read a signer key, sign, or broadcast.
+
+To open the repository's dashboard against that captured dry-run state, run in a second terminal:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 submissions/zhenzhenfang-source/serve_local_dashboard.py
+```
+
+Then open `http://localhost:8010/dashboard.html`. The helper serves a copy of the repository dashboard with the actual dry-run state from this folder; it does not add a prior transaction to the dashboard. Stop the local server with Ctrl-C. Capture the actual page to `screenshots/local_arena_dashboard_dry_run.png` manually; that screenshot is still pending in this checkout.
