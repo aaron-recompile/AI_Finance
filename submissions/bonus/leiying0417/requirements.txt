@@ -1,0 +1,6 @@
+# Direct dependencies. Only Web3 is pinned to the recorded project version.
+# This file does not replace the original project's complete environment lock.
+web3==8.0.0
+requests
+eth-abi
+rlp
