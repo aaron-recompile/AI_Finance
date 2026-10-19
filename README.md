@@ -1,14 +1,19 @@
-# AI Finance — Build Your Own On-Chain Autonomous Agent
+# AI Finance
 
-Course materials for **MB / CSE 599 · AI Finance**. We don't just *study* blockchains — we *build* on them, and end the term with an AI **agent** that can hold assets, pay, and trade on-chain, safely, behind guardrails. **Everything uses testnets only — you never touch real money.**
+**MB / CSE 599 · Graduate course · California Science and Technology University, Silicon Valley**
+Fall 2026
 
-> **New here? Start with [`SETUP.md`](SETUP.md).** It takes ~20 minutes and works on macOS / Windows / Linux.
+A hands-on graduate course in on-chain finance and autonomous agents. Students build the on-chain stack from first principles — wallets and transactions, AMMs and lending, arbitrage and flash loans, a centralized exchange, perpetuals and prediction markets — and finish the term with an autonomous agent that holds assets, pays, and trades on-chain, behind explicit guardrails. All work is on public testnets.
 
-> 🎬 **Concept videos (full-course companion):** short animated explainers that span the whole course — from what a smart contract even *is* (a vending machine), through DeFi, arbitrage and flash loans, autonomous agents, quant, and derivatives. One concept per video. Watch at **[aaron-recompile.github.io/AI_Finance/concept-videos](https://aaron-recompile.github.io/AI_Finance/concept-videos/)** (or see [`concept-videos/`](concept-videos/)) — rewatch as needed.
+This repository holds the full course: weekly materials and runnable code, interactive labs, concept videos, and readings.
 
-> 🧪 **Labs:** the course builds its on-chain pieces from first principles — a clickable **AMM, lending, farming, arbitrage and flash-loan** set, an on-chain **bot arena**, and **three venues on one matching engine** (spot · perpetuals · prediction). Open any of them and see how each works in **[`labs/`](labs/)**.
+> **New here? Start with [`SETUP.md`](SETUP.md).** ~20 minutes, on macOS / Windows / Linux.
 
-> 📚 **Readings:** reading lists and pre-readings for each week — history, technical depth, and critical context, all linking to free sources. See **[`readings/`](readings/)**.
+> 🎬 **Concept videos — full-course companion:** short animated explainers spanning the course — from what a smart contract is (a vending machine), through DeFi, arbitrage and flash loans, autonomous agents, quant, and derivatives. One concept per video. Watch at **[aaron-recompile.github.io/AI_Finance/concept-videos](https://aaron-recompile.github.io/AI_Finance/concept-videos/)** (or see [`concept-videos/`](concept-videos/)).
+
+> 🧪 **Labs:** the on-chain pieces are built from first principles — a clickable **AMM, lending, farming, arbitrage and flash-loan** set, an on-chain **bot arena**, and **three venues on one matching engine** (spot · perpetuals · prediction). See **[`labs/`](labs/)**.
+
+> 📚 **Readings:** reading lists and pre-readings for each week — history, technical depth, and critical context, linking to free sources. See **[`readings/`](readings/)**.
 
 ---
 
@@ -63,7 +68,7 @@ The building blocks. Swap on an AMM, then supply/borrow on a lending market — 
 
 ## Week 3 — Composability → Bots on Chain
 
-Snap the legos together into arbitrage and flash loans — first **by hand**, then let **bots** do it in one heartbeat.
+Snap the legos together into arbitrage and flash loans — first **by hand**, then automatically with **bots**.
 
 | What | Where |
 |------|-------|
@@ -79,7 +84,7 @@ Snap the legos together into arbitrage and flash loans — first **by hand**, th
 
 ## Week 4 — From Program to Agent (OpenClaw)
 
-Your bots were a pair of **hands** you drove by hand. This week a **brain** runs them on its own, 24/7, behind a fence — a real autonomous agent you talk to on Telegram.
+Your bots were **hands** you drove. This week a **brain** runs them on its own, behind guardrails — an autonomous agent you interact with over Telegram.
 
 | What | Where |
 |------|-------|
@@ -95,7 +100,7 @@ Every money action **plans → waits for your `confirm` → executes → verifie
 
 ## Week 5 — CEX: the Execution Layer (OKX + Alpaca) + Cash-and-Carry
 
-After building our own on-chain primitives, we drop to the **centralized execution layer**: how you actually talk to an exchange/broker over an API, and how a market-neutral **cash-and-carry** really pays once fees are counted. **Paper / demo money only; keys come from your env or the macOS keychain, never hard-coded.**
+After building our own on-chain primitives, we drop to the **centralized execution layer**: how you actually talk to an exchange/broker over an API, and how a market-neutral **cash-and-carry** pays once fees are counted. **Paper / demo money only; keys come from your env or the macOS keychain, never hard-coded.**
 
 | What | Where |
 |------|-------|
