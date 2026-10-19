@@ -1,0 +1,22 @@
+{
+  "updated": "2026-10-18T07:00:08Z",
+  "tick": 1,
+  "mode": "LIVE",
+  "bots": [
+    {
+      "name": "zhenzhenfang-liquidity-aware",
+      "hit": true,
+      "line": "RPC-verified ONE-LEG TEST SWAP: 1 tUSDC -> 0.001556838097665726 MAX at block 48269151; not a two-pool arbitrage.",
+      "pnl": 0.0,
+      "fires": 1,
+      "last_tx": "0x033fcad2e3b1e2afbeeb92e150ace817aa03551cc6350f2aefa909a86b412069",
+      "fired": true,
+      "receipt_verified": true,
+      "last_tx_verified": true,
+      "fire_status": "success",
+      "outcome_tx": null,
+      "fire_detail": "RPC verified receipt status=1; sender=0xB03B27ea60D9fcc73366bd0ECB41945E91307209; block=48269151; spent=1 tUSDC; received=0.001556838097665726 MAX; single-leg swap only."
+    }
+  ],
+  "total_pnl": 0.0
+}

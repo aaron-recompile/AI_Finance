@@ -1,0 +1,17 @@
+{
+  "updated": "21:52:34",
+  "tick": 1,
+  "mode": "DRY-RUN",
+  "bots": [
+    {
+      "name": "zhenzhenfang-liquidity-aware",
+      "hit": true,
+      "line": "zhenzhenfang-liquidity-aware: wallet=0xB03B27ea60D9fcc73366bd0ECB41945E91307209; A=438.719, B=477.453 tUSDC/MAX; gap=8.83%; size=989.00; estimated gross=+63.930, estimated net after modeled gas reserve=+62.930 tUSDC; liquidity=143,877/115,856; signal=HIT (dry-run)",
+      "pnl": 0.0,
+      "fires": 0,
+      "last_tx": null,
+      "fired": false
+    }
+  ],
+  "total_pnl": 0.0
+}
