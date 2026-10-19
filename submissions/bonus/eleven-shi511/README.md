@@ -1,22 +1,24 @@
-# AI Finance — HW 3 Bonus
+# AI Finance — HW3 Bonus
 
 **Student:** Jiawei Shi (Eleven Shi)  
-**GitHub Username:** eleven-shi511  
+**GitHub:** eleven-shi511  
 **Course:** MB/CSE 599 — AI Finance  
 **Instructor:** Mingjing Zhang
 
-## About This Submission
+## Previous homework materials
 
-This folder contains my HW 3 Bonus submission for the AI Finance course.
+- `Jiawei_Shi_HW2.pdf` — HW2 “Use the Legos” report: GitHub setup, AMM swap, LP staking/harvesting, and a flash-loan arbitrage estimate (not proof of execution).
+- `DeFi_AMM_Liquidity_Farming_Assignment_Jiawei_Shi.docx` — Base Sepolia AMM and yield farming lab report, including liquidity provision, LP staking, FARM harvesting, and swap observations.
+- `screenshots/Part 0(1).jpg` — GitHub setup screenshot.
+- `screenshots/Part 1.png` — AMM swap screenshot.
+- `screenshots/Part 2.png` — Farming screenshot.
+- `screenshots/Part 3.png` — AMM swap interface screenshot.
+- `screenshots/Part 4.png` — Final AMM state screenshot.
 
-I am learning how to use GitHub, fork repositories, organize homework files, and contribute through pull requests.
+## Notes
 
-## Previous Homework
+These are my existing homework reports and supporting screenshots. No original source-code files were included in this package because none were provided with these materials. This submission documents the work without claiming that screenshots or reports are executable code.
 
-I will add my previously completed homework code files here and describe each file.
+## GitHub workflow
 
-## Learning Goals
-
-- Learn GitHub and Git workflows.
-- Practice using forks and pull requests.
-- Organize and share Python homework code.
+This folder is prepared for a pull request to `aaron-recompile/AI_Finance` from my fork.
